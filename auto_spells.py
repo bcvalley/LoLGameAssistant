@@ -3,8 +3,19 @@ import tkinter as tk
 from PIL import Image ,ImageTk, ImageDraw
 from CTkScrollableDropdown import *
 import backend,saveload
+import game_dir,json,os
 profile_info = backend.Profile()
-port,api = profile_info.getAPI("C:/Riot Games/League of Legends/lockfile")
+def get_config_dir():
+    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    if os.path.exists(path):
+        with open(path) as p:
+            config = json.load(p)
+            return config["game_dir"]
+
+
+game_dir.game_dir = get_config_dir()
+game_dir.game_dir += "/lockfile"
+port,api = profile_info.getAPI(game_dir.game_dir)
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
 x =220 # start of the UI
@@ -18,6 +29,8 @@ center = 0
 ifel = []
 left_spell_selected = ""
 right_spell_selected = ""
+spell1 = "None"
+spell2 = "None"
 icons_update_left = []
 icons_update_right = []
 dictionary_classic = {
@@ -32,7 +45,8 @@ dictionary_classic = {
     "Smite":11
 }
 combo_boxes = []
-
+right_combo_box = None
+left_combo_box = None
 dictionary_aram = {
     "Flash":4,
     "Heal":7,
@@ -46,7 +60,7 @@ dictionary_aram = {
     "Smite":11
 }
 def draw_spells(appp):
-    global app,WIDTH,HEIGHT,font,widgets,center
+    global app,WIDTH,HEIGHT,font,widgets,center,spell1
     app = appp
      # Configure the grid layout on the parent widget (app)
     
@@ -63,8 +77,8 @@ def draw_spells(appp):
     #backend.AutoSpells.download_spells() # UNCOMMENT TO DOWNLOAD ICONS
     draw_radiobutton()
     draw_label()
-    draw_spell_one("None")
-    draw_spell_two("None")
+    draw_spell_one(spell1)
+    draw_spell_two(spell2)
     draw_toggle()
     draw_left_combobox()
     draw_right_combobox()
@@ -107,7 +121,7 @@ def draw_radiobutton():
 import customtkinter as ctk
 
 def draw_left_combobox():
-    
+    global left_combo_box
     if get_gamemode() == "Classic":
         values = list(dictionary_classic.keys())
     elif get_gamemode() == "ARAM":
@@ -116,7 +130,10 @@ def draw_left_combobox():
     left_combo_box = ctk.CTkComboBox(app, width=200, height=40, values=values)
     left_combo_box.configure(command=lambda k: set_icon_left(k) or left_combo_box.set(k) or check_both_comboboxes(left_combo_box))
     left_combo_box.grid(row=5, column=5)
-    left_combo_box.set("Spell 1")
+    if spell1 != "None":
+        left_combo_box.set(spell1)
+    else:
+        left_combo_box.set("Spell 1")
 
    
 
@@ -124,6 +141,7 @@ def draw_left_combobox():
     return values
 
 def draw_right_combobox():
+    global right_combo_box
     if get_gamemode() == "Classic":
         values = list(dictionary_classic.keys())
     else:
@@ -132,7 +150,10 @@ def draw_right_combobox():
     right_combo_box = ctk.CTkComboBox(app, width=200, height=40, values=values)
     right_combo_box.configure(command=lambda k: set_icon_right(k) or right_combo_box.set(k) or check_both_comboboxes(right_combo_box))
     right_combo_box.grid(row=5, column=9)
-    right_combo_box.set("Spell 2")
+    if spell2 != "None":
+        right_combo_box.set(spell2)
+    else:
+        right_combo_box.set("Spell 2")
     
 
     ifel.append(right_combo_box)
@@ -174,8 +195,12 @@ def draw_toggle():
             status_label.configure(text="status: on",text_color="green")
             status=True
             app.after(4000,do)
-
-    toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white",command=switch)
+    # loads config spells 
+    def do_my_job():
+        switch()
+        check_both_comboboxes(left_combo_box)
+        check_both_comboboxes(right_combo_box)
+    toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white",command=do_my_job)
     toggle_button.place(x=center,y=430)
     widgets.append(toggle_button)
     status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
@@ -197,38 +222,41 @@ def set_icon_right(name):
         icon.destroy()
     draw_spell_two(name)
 def check_both_comboboxes(cb):
-    global combo_boxes
+    if len(combo_boxes) != 2:
+        combo_boxes.append(cb)
     
-    try:
-        
-        if combo_boxes and combo_boxes[0] == cb:
-            print("Same widget")
-        else:
-            combo_boxes.append(cb)
-            print(combo_boxes)
-    except IndexError:
-        pass
-
-
-    if len(combo_boxes) == 2:
+    else:
         try:
-            left = combo_boxes[0]
-            right = combo_boxes[1]
-            if left.get() == right.get():
-                tk.messagebox.showerror(title="Error", message="Please choose different spells")
-
-                left.set("Spell 1")
-                set_icon_left("None")
-                right.set("Spell 2")
-                set_icon_right("None")
-                
-                combo_boxes.clear()  
+            
+            if combo_boxes and combo_boxes[0] == cb:
+                print("Same widget")
+            else:
+                combo_boxes.append(cb)
+                print(combo_boxes)
         except IndexError:
             pass
+
+
+        if len(combo_boxes) == 2:
+            try:
+                left = combo_boxes[0]
+                right = combo_boxes[1]
+                if left.get() == right.get():
+                    tk.messagebox.showerror(title="Error", message="Please choose different spells")
+
+                    left.set("Spell 1")
+                    set_icon_left("None")
+                    right.set("Spell 2")
+                    set_icon_right("None")
+                    
+                    combo_boxes.clear()  
+            except IndexError:
+                pass
 
 def do():
     global status,api,port,combo_boxes
     if status:
+        
         backend.AutoSpells.spells_event(combo_boxes[0].get(),combo_boxes[1].get(),port,api)
         app.after(4000,do)
     

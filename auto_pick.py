@@ -1,14 +1,22 @@
 import customtkinter as ctk
 import numpy as np
 from PIL import Image ,ImageTk, ImageDraw
-import backend,saveload
+import backend,json,os
 from CTkScrollableDropdown import *
+import saveload
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
 x =220 # start of the UI
 WIDTH = 0
 0 #screen width
 HEIGHT = 0 # screen height
+def get_config_dir():
+    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    if os.path.exists(path):
+        with open(path) as p:
+            config = json.load(p)
+            return config["game_dir"]
+
 
 font = ('Montserrat',30,'bold') # FONT USED 
 widgets =[] # labels,buttons and etc are placed here to destroy
@@ -16,6 +24,7 @@ already_clicked = False
 center = 0
 values = None
 keys= None
+loaded_champion_from_config = "None"
 dictionary = {}
 champ_picked = ""
 name_of_champion = ""
@@ -32,7 +41,7 @@ def draw_auto_pick(appp):
     HEIGHT = app.winfo_screenheight()
     center = (WIDTH-x)/2
     draw_label()
-    draw_champion_icon("Aatrox")
+    draw_champion_icon(loaded_champion_from_config)
     draw_combobox()
     draw_toggle()
 
@@ -56,15 +65,29 @@ def draw_champion_icon(icon):
 def draw_combobox():
     global values
     combo_box = ctk.CTkComboBox(app,width=200,height=40)
-    CTkScrollableDropdown(combo_box,values=values,command=lambda k: draw_champion_icon(k) or combo_box.set(k) or set_name_of_champion(k),autocomplete=True,button_height=30)
-    combo_box.grid(row=5,column=9)
     
+    def do_my_job(combobox ,k):
+        global loaded_champion_from_config
+        if loaded_champion_from_config == "None":
+            draw_champion_icon(k)
+            combobox.set(k)
+            set_name_of_champion(k)
+        else:
+            draw_champion_icon(loaded_champion_from_config)
+            combobox.set(loaded_champion_from_config)
+            set_name_of_champion(loaded_champion_from_config)
+    CTkScrollableDropdown(combo_box,values=values,command=lambda k: do_my_job(combo_box,k),autocomplete=True,button_height=30)
+    combo_box.grid(row=5,column=9)
+    do_my_job(combo_box,loaded_champion_from_config)
     widgets.append(combo_box)
 
 
 status=False
 profile_info = backend.Profile()
-port,api = profile_info.getAPI("C:/Riot Games/League of Legends/lockfile")
+import game_dir
+game_dir.game_dir = get_config_dir()
+game_dir.game_dir += "/lockfile"
+port,api = profile_info.getAPI(game_dir.game_dir)
 pick = backend.AutoPick()
 
 def name_to_id(name):

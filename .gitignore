@@ -4,3 +4,7 @@ items/
 saved_config/
 summoner-ico
 spell_icons/
+__pycache__/
+.vscode/
+
+

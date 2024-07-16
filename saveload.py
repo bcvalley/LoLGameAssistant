@@ -2,7 +2,10 @@ import customtkinter as ctk
 import os, json
 import tkinter as tk
 from PIL import Image, ImageTk, ImageDraw
-
+import auto_spells
+import auto_accept as aa
+import auto_pick as ap
+import auto_ban as ab
 BACKGROUND = "#242424"
 WIDTH = 0
 HEIGHT = 0
@@ -15,6 +18,7 @@ spell2 = "None"
 json_file_loaded_values = []
 canvas = None
 application = None
+widgets = []
 def draw_save(app, statuses):
     global canvas, center, application
     if canvas is not None:
@@ -58,10 +62,11 @@ def draw_save(app, statuses):
         canvas.create_text(center, 220, text="ON", fill="green", font=("Montserrat", 18, "bold"), anchor="w")
     else:
         canvas.create_text(center, 220, text="OFF", fill="red", font=("Montserrat", 18, "bold"), anchor="w")
-
+    
     save_button = ctk.CTkButton(app, text="Save", command=lambda: save(statuses), bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
     save_button.place(x=center + 150, y=300)
 
+    widgets.append(save_button)
     canvas.create_text(center - 320, 390, text="Load Configuration", fill="white", font=("Montserrat", 20, "bold"), anchor="w")
     canvas.create_text(center - 300, 460, text="Pick", fill="white", font=("Montserrat", 15, "bold"), anchor="w")
     canvas.create_text(center - 200, 460, text="Ban", fill="white", font=("Montserrat", 15, "bold"), anchor="w")
@@ -70,6 +75,53 @@ def draw_save(app, statuses):
     
     load_button = ctk.CTkButton(app, text="Load", command=lambda: load(), bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
     load_button.place(x=center + 150, y=615)
+    widgets.append(load_button)
+    widgets.append(canvas)
+
+    canvas.create_rectangle(10,50,340,130,fill="dimgray")
+    game_dir_label = ctk.CTkLabel(app,font=('Montserrat', 16, 'bold'),bg_color="dimgray")
+    game_dir_label.place(x=240,y=70)
+    widgets.append(game_dir_label)
+    def open_folder():
+        directory = ctk.filedialog.askdirectory()
+        game_dir_label.configure(text=directory)
+        save_game_dir(directory)
+    
+    get_game_dir = ctk.CTkButton(app, text="Change Game Directory", command=open_folder, bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
+    get_game_dir.place(x=360, y=100)
+    widgets.append(get_game_dir)
+    config_path = "C:\\Users\\ivetoooooooooooo\\OneDrive - Министерство на образованието и науката\\Desktop\\FF15\\saved_config\\game_dir.json"
+    if os.path.exists(config_path):
+        with open(config_path) as p:
+            config = json.load(p)
+            game_dir_label.configure(text=config["game_dir"])
+            
+
+    else:
+        game_dir_label.configure(text="Game directory not found")
+
+
+
+
+
+def save_game_dir(game_dir):
+    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    config = {"game_dir": game_dir}
+    json_config = json.dumps(config,indent=4)
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    with open(path, 'w') as f:
+        f.write(json_config)
+
+def get_config_dir():
+    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    if os.path.exists(path):
+        with open(path) as p:
+            config = json.load(p)
+            return config["game_dir"]
+
+
 
 def save(statuses):
     save_to_json(statuses)
@@ -82,10 +134,18 @@ def load():
         with open(path) as p:
             config = json.load(p)
             auto_accept = config["auto_accept"]
+            if auto_accept == None:
+                aa.status = False
+            elif auto_accept == True:
+                aa.status = True
             auto_pick = config["auto_pick"]
+            ap.loaded_champion_from_config = auto_pick
             auto_ban = config["auto_ban"]
+            ab.loaded_ban_champion_from_config = auto_ban
             spell1 = config["spell1"]
+            auto_spells.spell1 = spell1
             spell2 = config["spell2"]
+            auto_spells.spell2 = spell2
             json_file_loaded_values = [auto_accept, auto_pick, auto_ban, spell1, spell2]
             print(json_file_loaded_values)
 
@@ -152,3 +212,6 @@ def save_to_json(status):
 
     with open(path, 'w') as f:
         f.write(json_file)
+
+def get_widgets():
+    return widgets

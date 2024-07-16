@@ -4,11 +4,14 @@ from PIL import Image ,ImageTk, ImageDraw,ImageFilter, ImageFont
 import ingame,backend,match_history
 import auto_pick,requests,os
 import auto_ban,auto_spells,auto_accept,saveload
+import game_dir
 WIDTH = 0
 HEIGHT = 0
+game_dir.game_dir = saveload.get_config_dir()
+game_dir.game_dir += "/lockfile"
 statuses = [None,None,None,None,None]
 profile_info = backend.Profile()
-port,api = profile_info.getAPI("C:/Riot Games/League of Legends/lockfile")
+port,api = profile_info.getAPI(game_dir.game_dir)
 widgets = None
 
 print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
@@ -20,7 +23,8 @@ def load_widgets():
         auto_pick.get_widgets() +
         auto_ban.get_widgets() +
         auto_spells.get_widgets() +
-        match_history.get_widgets()
+        match_history.get_widgets() +
+        saveload.get_widgets()
     )
     
     if len(widgets) > 2:
@@ -198,7 +202,7 @@ def menu(app,s_height):
     lense_image = ImageTk.PhotoImage(lense_resized_image)
     def search_player():
         temp = search_box.get().split("#")
-        
+        load_widgets()
         match_history.draw_match_history(app,temp[0],temp[1])
 
     lense_button = ctk.CTkButton(app,image=lense_image,text="",
