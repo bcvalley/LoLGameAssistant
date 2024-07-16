@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image ,ImageTk, ImageDraw
 import backend,requests,threading,urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import os,json
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
 x =220 # start of the UI
@@ -13,7 +14,19 @@ widgets =[] # labels,buttons and etc are placed here to destroy
 already_clicked = False
 all_data = None
 prof = backend.Profile()
-port,api = prof.getAPI("C:/Riot Games/League of Legends/lockfile")
+import game_dir
+def get_config_dir():
+    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    if os.path.exists(path):
+        with open(path) as p:
+            config = json.load(p)
+            return config["game_dir"]
+
+
+game_dir.game_dir = get_config_dir()
+game_dir.game_dir += "/lockfile"
+profile_info = backend.Profile()
+port,api = profile_info.getAPI(game_dir.game_dir)
 data_recieved = False
 dictionary = backend.getChampionsWithID()
 game_info = []

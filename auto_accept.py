@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from PIL import Image ,ImageTk, ImageDraw
-import backend,saveload
+import backend,json,os,saveload
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
 x =220 # start of the UI
@@ -10,7 +10,19 @@ font = ('Montserrat',30,'bold') # FONT USED
 widgets =[] # labels,buttons and etc are placed here to destroy
 already_clicked = False
 center = 0
-port,api = backend.Profile().getAPI("C:/Riot Games/League of Legends/lockfile")
+def get_config_dir():
+    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    if os.path.exists(path):
+        with open(path) as p:
+            config = json.load(p)
+            return config["game_dir"]
+
+
+import game_dir
+game_dir.game_dir = get_config_dir()
+game_dir.game_dir += "/lockfile"
+
+port,api = backend.Profile().getAPI(game_dir.game_dir)
 def draw_accpet(appp):
     global app,WIDTH,HEIGHT,font,widgets,center
     app = appp

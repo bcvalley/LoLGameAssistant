@@ -94,7 +94,7 @@ def refresh_clicked(filter_combobox, sort_combobox,champ_combobox):
 def draw_comboboxes(values: list):
     filter_values = ["FILTER BY", "WINS", "LOSSES", "NORMAL", "FLEX", "SOLO/DUO", "ARAM"]
     filter_combobox = ctk.CTkComboBox(app, values=filter_values, width=200, height=20)
-    filter_combobox.grid(row=1,column=4,padx=20)
+    filter_combobox.grid(row=1,column=4,padx= 20)
 
     sort_values = ["SORT BY", "Most Played Champion", "Most Kills", "Most Deaths", "Most Assists", "Least Kills", "Least Assists", "Least Deaths", "Best K/D/A"]
     sort_combobox = ctk.CTkComboBox(app, values=sort_values, width=200, height=20)

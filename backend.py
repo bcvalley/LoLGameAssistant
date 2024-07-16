@@ -141,6 +141,7 @@ class Backend:
 class Profile:
     
     def getAPI(slef,path):
+        
         try:  
             file = open(path)
             text = file.readline()
@@ -150,6 +151,7 @@ class Profile:
             
             return int(port),auth
         except FileNotFoundError:
+            
             tkinter.messagebox.showinfo("lockfile not found", "League of Legends is not running.\nPlease start League of Legends first")
             exit()
             
