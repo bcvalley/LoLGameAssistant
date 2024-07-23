@@ -6,6 +6,7 @@ import auto_spells
 import auto_accept as aa
 import auto_pick as ap
 import auto_ban as ab
+PATH = os.getcwd()
 BACKGROUND = "#242424"
 WIDTH = 0
 HEIGHT = 0
@@ -90,7 +91,7 @@ def draw_save(app, statuses):
     get_game_dir = ctk.CTkButton(app, text="Change Game Directory", command=open_folder, bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
     get_game_dir.place(x=360, y=100)
     widgets.append(get_game_dir)
-    config_path = "C:\\Users\\ivetoooooooooooo\\OneDrive - Министерство на образованието и науката\\Desktop\\FF15\\saved_config\\game_dir.json"
+    config_path = f"{PATH}\\saved_config\\game_dir.json"
     if os.path.exists(config_path):
         with open(config_path) as p:
             config = json.load(p)
@@ -105,7 +106,7 @@ def draw_save(app, statuses):
 
 
 def save_game_dir(game_dir):
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    path = f"{PATH}\\saved_config\\game_dir.json"
     config = {"game_dir": game_dir}
     json_config = json.dumps(config,indent=4)
 
@@ -115,7 +116,7 @@ def save_game_dir(game_dir):
         f.write(json_config)
 
 def get_config_dir():
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    path = f"{PATH}\\saved_config\\game_dir.json"
     if os.path.exists(path):
         with open(path) as p:
             config = json.load(p)
@@ -128,7 +129,7 @@ def save(statuses):
 
 def load():
     global center, canvas
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/config.json"
+    path = f"{PATH}\\saved_config\\config.json"
 
     if os.path.exists(path):
         with open(path) as p:
@@ -190,9 +191,9 @@ def load():
                 canvas.create_text(center, 535, text="OFF", fill="red", font=("Montserrat", 18, "bold"), anchor="w")
             tk.messagebox.showinfo("Done!", "Config loaded successfully")
 def draw_champion_icon(icon, image_size):
-    path = f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/champion_icons/{icon}.png"
+    path = f"{PATH}\\champion_icons\\{icon}.png"
     if not os.path.exists(path):
-        path = f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/spell_icons/Summoner{icon}.png"
+        path = f"{PATH}\\spell_icons\\Summoner{icon}.png"
     loaded_champion_image = Image.open(path)
     ban_champ_resized = loaded_champion_image.resize(image_size)
     ban_champ_image = ImageTk.PhotoImage(ban_champ_resized)
@@ -207,7 +208,7 @@ def save_to_json(status):
         "spell2": status[4],
     }
     json_file = json.dumps(file, indent=4)
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/config.json"
+    path = f"{PATH}\\saved_config\\config.json"
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
     with open(path, 'w') as f:
