@@ -1,11 +1,11 @@
 import customtkinter as ctk
 import tkinter as tk
-import numpy as np
+import os
 from PIL import Image, ImageTk, ImageDraw, ImageFilter, ImageFont
 import backend
 from CTkScrollableDropdown import *
 from collections import Counter
-
+PATH = os.getcwd()
 BACKGROUND = "#242424"  # Background color
 app = None  # Main CTK
 x = 220  # Start of the UI
@@ -100,7 +100,7 @@ def draw_comboboxes(values: list):
     sort_combobox = ctk.CTkComboBox(app, values=sort_values, width=200, height=20)
     sort_combobox.grid(row=1,column=5)
 
-    loaded_refresh_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/refresh.png")
+    loaded_refresh_image = Image.open(f"{PATH}\\icons\\refresh.png")
     refresh_resized_image = loaded_refresh_image.resize((20, 20))
     refresh_image = ImageTk.PhotoImage(refresh_resized_image)
     
@@ -133,7 +133,7 @@ def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
             sortable_champions.append(each_game[0])
         aaa.getItems(each_game[6])
         image_size = (100, 100)
-        loaded_champion_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/champion_icons/{each_game[0]}.png")
+        loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{each_game[0]}.png")
         champ_resized = loaded_champion_image.resize(image_size)
         champ_image = ImageTk.PhotoImage(champ_resized)
         canvas.create_image(40, icon_ending, image=champ_image)
@@ -147,7 +147,7 @@ def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
                 canvas.create_rectangle(z-15, icon_ending-15, z+15, icon_ending+15, fill="grey")
                 z += 40
             else:
-                loaded_item_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/items/{each_item}.png")
+                loaded_item_image = Image.open(f"{PATH}\\items\\{each_item}.png")
                 item_resized = loaded_item_image.resize(image_size)
                 item_image = ImageTk.PhotoImage(item_resized)
                 canvas.create_image(z, icon_ending, image=item_image)

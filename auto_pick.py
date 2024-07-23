@@ -4,6 +4,7 @@ from PIL import Image ,ImageTk, ImageDraw
 import backend,json,os
 from CTkScrollableDropdown import *
 import saveload
+PATH = os.getcwd()
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
 x =220 # start of the UI
@@ -11,7 +12,8 @@ WIDTH = 0
 0 #screen width
 HEIGHT = 0 # screen height
 def get_config_dir():
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    path = f"{PATH}\\saved_config\\game_dir.json"
+    
     if os.path.exists(path):
         with open(path) as p:
             config = json.load(p)
@@ -55,7 +57,7 @@ def draw_champion_icon(icon):
     global center,champ_picked
     champ_picked = icon
     image_size = (110,110)
-    loaded_champion_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/champion_icons/{icon}.png")
+    loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon}.png")
     pick_champ_resized = loaded_champion_image.resize(image_size)
     pick_champ_image = ImageTk.PhotoImage(pick_champ_resized)
     pick_champ = ctk.CTkLabel(app,image=pick_champ_image,text="")

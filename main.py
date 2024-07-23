@@ -13,6 +13,9 @@ statuses = [None,None,None,None,None]
 profile_info = backend.Profile()
 port,api = profile_info.getAPI(game_dir.game_dir)
 widgets = None
+path = os.getcwd()
+
+print()
 
 print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
 def load_widgets():
@@ -48,7 +51,7 @@ def load_widgets():
 load_widgets()
 
 def menu(app,s_height):
-    global username,level,tagline,iconId,tier,rank,lp,winrate,port,api
+    global username,level,tagline,iconId,tier,rank,lp,winrate,port,api,path
     button_height = 80
     menu_width =220
     BACKGROUND = "dimgray"
@@ -61,7 +64,7 @@ def menu(app,s_height):
         app.grid_columnconfigure(col, weight=2)
     for row in range(16):  # Assuming you want to configure rows 0 to 15
         app.grid_rowconfigure(row, weight=2)
-    load_battle_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/battle.png")
+    load_battle_image = Image.open(os.path.join(path,"icons\\battle.png"))
     battle_resized_image = load_battle_image.resize((image_w_size,image_h_size))
     battle_image = ImageTk.PhotoImage(battle_resized_image)
     def battle_button_clicked():
@@ -78,7 +81,7 @@ def menu(app,s_height):
                                        )
     battle_button.place(x=0,y=starting_position)
 
-    load_ingame_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/ingame.png")
+    load_ingame_image = Image.open(os.path.join(path,"icons\\ingame.png"))
     ingame_resized_image = load_ingame_image.resize((image_w_size,image_h_size))
     ingame_image = ImageTk.PhotoImage(ingame_resized_image)
     def ing_button_clicked():
@@ -97,7 +100,7 @@ def menu(app,s_height):
     
     ingame_button.place(x=0,y=starting_position+(1*button_height))
 
-    loaded_lockin_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/autolock.png")
+    loaded_lockin_image = Image.open(os.path.join(path,"icons\\autolock.png"))
     lockin_resized_image = loaded_lockin_image.resize((image_w_size,image_h_size))
     lockin_image = ImageTk.PhotoImage(lockin_resized_image)
     def lock_button_clicked():
@@ -117,7 +120,7 @@ def menu(app,s_height):
                                        )
     lockin_button.place(x=0,y=starting_position+(2*button_height))
     
-    loaded_ban_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/ban.png")
+    loaded_ban_image = Image.open(os.path.join(path,"icons\\ban.png"))
     ban_resized_image = loaded_ban_image.resize((image_w_size,image_h_size))
     ban_image = ImageTk.PhotoImage(ban_resized_image)
     def ban_button_clicked():
@@ -135,7 +138,7 @@ def menu(app,s_height):
     ban_button.place(x=0,y=starting_position+(3*button_height))
 
 
-    loaded_spell_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/spell.png")
+    loaded_spell_image = Image.open(os.path.join(path,"icons\\spell.png"))
     spell_resized_image = loaded_spell_image.resize((image_w_size,image_h_size))
     spell_image = ImageTk.PhotoImage(spell_resized_image)
     def spell_button_clicked():
@@ -152,7 +155,7 @@ def menu(app,s_height):
                                        )
     spell_button.place(x=0,y=starting_position+(4*button_height))
 
-    loaded_accept_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/accept.png")
+    loaded_accept_image = Image.open(os.path.join(path,"icons\\accept.png"))
     accpet_resized_image = loaded_accept_image.resize((image_w_size,image_h_size))
     accpet_image = ImageTk.PhotoImage(accpet_resized_image)
     def accept_button_clicked():
@@ -197,7 +200,7 @@ def menu(app,s_height):
     search_box.bind("<Button-1>", click) 
     search_box.place(x=10,y=140)
     #search button
-    loaded_lense_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/lense.png")
+    loaded_lense_image = Image.open(os.path.join(path,"icons\\lense.png"))
     lense_resized_image = loaded_lense_image.resize((20,20))
     lense_image = ImageTk.PhotoImage(lense_resized_image)
     def search_player():
@@ -268,14 +271,14 @@ username,tagline,iconId,level = getProfileData(port,api)
 tier,rank,lp,winrate = playerRankAndWinrate(username,tagline,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
 
 def downloadProfileIcon(id:int):
-    path = f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/profile_icons/{id}.png"
-    if os.path.exists(path):
+    new_path = f"{path}\\profile_icons\\{id}.png"
+    if os.path.exists(new_path):
         
-        return path
+        return new_path
     else:
         url = f"https://ddragon.leagueoflegends.com/cdn/14.13.1/img/profileicon/{id}.png"
         img_data = requests.get(url)
-        with open(path,"wb") as handler:
+        with open(new_path,"wb") as handler:
             handler.write(img_data.content)
     getProfileIconPath(id)
 def getProfileIconPath(id):

@@ -5,8 +5,10 @@ from CTkScrollableDropdown import *
 import backend,saveload
 import game_dir,json,os
 profile_info = backend.Profile()
+PATH = os.getcwd()
 def get_config_dir():
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    path = f"{PATH}\\saved_config\\game_dir.json"
+    
     if os.path.exists(path):
         with open(path) as p:
             config = json.load(p)
@@ -161,7 +163,7 @@ def draw_right_combobox():
 
 def draw_spell_one(name):
     global icons_update_left
-    loaded_spell_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/spell_icons/Summoner{name}.png")
+    loaded_spell_image = Image.open(f"{PATH}\\spell_icons\\Summoner{name}.png")
     spell_one_resized = loaded_spell_image.resize(image_size)
     spell_image = ImageTk.PhotoImage(spell_one_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")
@@ -173,7 +175,7 @@ def draw_spell_one(name):
     widgets.append(hotkey_D)
 def draw_spell_two(name):
     global icons_update_right
-    loaded_spell_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/spell_icons/Summoner{name}.png")
+    loaded_spell_image = Image.open(f"{PATH}\\spell_icons\\Summoner{name}.png")
     spell_two_resized = loaded_spell_image.resize(image_size)
     spell_image = ImageTk.PhotoImage(spell_two_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")

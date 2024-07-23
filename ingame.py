@@ -4,6 +4,7 @@ from PIL import Image ,ImageTk, ImageDraw
 import backend,requests,threading,urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import os,json
+PATH = os.getcwd()
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
 x =220 # start of the UI
@@ -16,7 +17,8 @@ all_data = None
 prof = backend.Profile()
 import game_dir
 def get_config_dir():
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    path = f"{PATH}\\saved_config\\game_dir.json"
+    
     if os.path.exists(path):
         with open(path) as p:
             config = json.load(p)
@@ -77,14 +79,14 @@ def draw_map():
     global app
     map="SR"
     if map == "SR":
-        open_summoners_rift_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/summoners_rift.jpg")
+        open_summoners_rift_image = Image.open(f"{PATH}\\icons\\summoners_rift.jpg")
         sr_resized_image = open_summoners_rift_image.resize((1146,200))
         ingame_image = ImageTk.PhotoImage(sr_resized_image)
         summoners_rift_image = ctk.CTkLabel(app,image=ingame_image,text="")
         summoners_rift_image.place(x=220,y=0)
         widgets.append(summoners_rift_image)
     elif map == "ARAM":
-        open_summoners_rift_image = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/aram.jpg")
+        open_summoners_rift_image = Image.open(f"{PATH}\\icons\\aram.jpg")
         sr_resized_image = open_summoners_rift_image.resize((1146,200))
         ingame_image = ImageTk.PhotoImage(sr_resized_image)
         summoners_rift_image = ctk.CTkLabel(app,image=ingame_image,text="")
@@ -101,7 +103,7 @@ def draw_red_point():
 
 
 
-    open_red_point = Image.open("C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/icons/redpoint.png")
+    open_red_point = Image.open(f"{PATH}\\icons\\redpoint.png")
     red_point_resized_image = open_red_point.resize((20,20))
     red_image = ImageTk.PhotoImage(red_point_resized_image)
     red_point_image = ctk.CTkLabel(app,image=red_image,text="",bg_color="#242424")
@@ -212,7 +214,7 @@ def draw_blue_team():
         global Y_level
         icon_name = id_to_name(id)
         image_size = (90,90)
-        loaded_champion_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/champion_icons/{icon_name}.png")
+        loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon_name}.png")
         pick_champ_resized = loaded_champion_image.resize(image_size)
         pick_champ_image = ImageTk.PhotoImage(pick_champ_resized)
         pick_champ = ctk.CTkLabel(app,image=pick_champ_image,text="")
@@ -294,7 +296,7 @@ def draw_red_team():
         x_start = end_width+90
         icon_name = id_to_name(id)
         image_size = (90,90)
-        loaded_champion_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/champion_icons/{icon_name}.png")
+        loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon_name}.png")
         pick_champ_resized = loaded_champion_image.resize(image_size)
         pick_champ_image = ImageTk.PhotoImage(pick_champ_resized)
         pick_champ = ctk.CTkLabel(app,image=pick_champ_image,text="")
@@ -339,7 +341,7 @@ def draw_devision(devision,x,y,color):
     if devision != None:
          
         image_size = (85,85)
-        loaded_item_image = Image.open(f"C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/ranks/{devision}.png")
+        loaded_item_image = Image.open(f"{PATH}\\ranks\\{devision}.png")
         item_resized = loaded_item_image.resize(image_size)
         item_image = ImageTk.PhotoImage(item_resized)
         rank_emblem = ctk.CTkLabel(app,image=item_image,text="",bg_color=color,fg_color=color)

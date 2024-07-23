@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from PIL import Image ,ImageTk, ImageDraw
 import backend,json,os,saveload
+PATH = os.getcwd()
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
 x =220 # start of the UI
@@ -11,7 +12,7 @@ widgets =[] # labels,buttons and etc are placed here to destroy
 already_clicked = False
 center = 0
 def get_config_dir():
-    path = "C:/Users/ivetoooooooooooo/OneDrive - Министерство на образованието и науката/Desktop/FF15/saved_config/game_dir.json"
+    path = f"{PATH}\\saved_config\\game_dir.json"
     if os.path.exists(path):
         with open(path) as p:
             config = json.load(p)
