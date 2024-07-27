@@ -29,8 +29,9 @@ def load_widgets():
         match_history.get_widgets() +
         saveload.get_widgets()
     )
-    
-    if len(widgets) > 2:
+    # was 2 in the original code
+                    ##|
+    if len(widgets) > 0:
         
         
         

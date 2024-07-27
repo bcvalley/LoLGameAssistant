@@ -14,6 +14,7 @@ font = ('Montserrat',17,'bold') # FONT USED
 widgets =[] # labels,buttons and etc are placed here to destroy
 already_clicked = False
 all_data = None
+checking_for_match = False
 prof = backend.Profile()
 import game_dir
 def get_config_dir():
@@ -36,41 +37,42 @@ Y_level = 250
 Y_level_second = 250
 def live_game_draw(appp):
     global app,WIDTH,HEIGHT,already_clicked,data_recieved,all_data,dictionary,game_info
+    
     app = appp
     WIDTH = app.winfo_screenwidth()
     HEIGHT = app.winfo_screenheight()
     center = WIDTH/2 
     req_label = ctk.CTkLabel(app,text="You are not in match yet",text_color="red",font=('Montserrat',40,'bold'),anchor="center")
     all_data,data_recieved,game_info = refresh()
-    print(f"start {all_data}")
-    print(f"end------------------------------------")
-    # all_data = [['1EvmemmZahbgXJJHtColbp6NQyvNdsKqUdSQGsfXT9J9KOzWI0_K3Pe5pXJzWLGilPLybUrOE38wkw', 100, 9, 3784, 'PLATINUM', 'II', 52, 831, 'Lord Shifu#UwU'],
-    #     ['TDPhJGKwKamfHbC_JyMj09O9BrY6_DdxNxQ2DCGRPAVKrIDsy2ckJnRXUbGghv7xUl_brHMc_V7vUg', 100, 22, 5055, None, None, None, 423, 'be afraiid#EUNE'],
-    #     ['SGlGGo4sOb6s_ut7AP_e6Dbuhvw3mFL-2ZX2FCBCF34URdNkjCb4bcp6oAgMpymtw7aDVkN-GGOnuQ', 100, 21, 6570, None, None, None, 106, 'remonderean#EUNE'],
-    #     ['sBQFdHid_7SBuoGRDtnihjiNW_Pn3WtATsJalwqgmKQd17qLYHC_Z-JDzXVIrMYbpJgChK0BuTjEew', 100, 555, 4404, 'SILVER', 'II', 80, 250, 'LantiBoy#EUNE'],
-    #     ['66tG3Ce5hqdDXSrgtc5vDzEw4tses4_MP968c2FW9Fb2BJ5uHVoWRAOZwf-gJIrjQTTFYVWySO2Oqg', 100, 131, 1645, 'GOLD', 'IV', 45, 433, 'easywins#EUNE'],
-    #     ['NK59SkJ7gJVuR11w-YpMoJWOgbPs71GTmOWGdZfJukY1dVh3-Q0hiG2oNxI_Pn4cyGe_6dnVunPfUg', 200, 202, 582, None, None, None, 232, 'Black Pencil#EUNE'], 
-    #     ['8p_bLOcn00e6nR5kwTizqi8OJ3XeEA4d9MjYMullamoBT0IXOy4xHaBw7IxtjBt4GkQM3o-SNhbUEQ', 200, 888, 5765, None, None, None, 278, 'Dezhavyu#EUNE'],
-    #     ['9AGt-EfrNi3HzlNi9i_Ogn2JfX21T5iL6Wy86f7-nzf9x7tTM_k0ZMVmMPYsVgd4uV4a-RzHwkCG_A', 200, 14, 6632, 'PLATINUM', 'IV', 57, 563, 'H GeushTouMenous#txc'],
-    #     ['S1w2-djr4iCn7l7K_lMQ0HeUAG-gC_h68pe61e4P5_AXPBjekryDmsf2fH1rPQ3U3b5l6ayrs1BVVQ', 200, 24, 4568, 'SILVER', 'II', 52, 336, 'dyfcio3#EUNE'],
-    #     ['49pmi83W8SILkcFyVnXPpljglQpf-sQ__JasyAqGvw9NTuSmeM1crCz4Hu9USLOf93m3SiPmSK1Bog', 200, 711, 5859, 'SILVER', 'II', 50, 489, 'waynx#EUNE']]
+
     
     if data_recieved == False:
-        print("data not recieved")
-        req_label.place(x=center-100,y=HEIGHT/2-100)
-        app.after(1000, live_game_draw, app)
+        
+        req_label.place(x=center-100,y=HEIGHT/2-80)
+        image_size = (60,60)
+        loaded_refresh_image = Image.open(f"{PATH}\\icons\\refresh.png")
+        refresh_resized = loaded_refresh_image.resize(image_size)
+        refresh_image = ImageTk.PhotoImage(refresh_resized)
+        check_for_match_button = ctk.CTkButton(app,image=refresh_image,text="",command=lambda: live_game_draw(app),bg_color=BACKGROUND,fg_color=BACKGROUND,anchor="center",hover_color="yellow")
+        check_for_match_button.place(x=WIDTH-390,y=HEIGHT/2-100)
+        
+        # for x in widgets:
+        #     x.destroy()
+        #app.after(1000, live_game_draw, app)
+        widgets.append(req_label)
+        widgets.append(check_for_match_button)
     else:   
         try:
             req_label.place_forget()
         except:AttributeError
     
-    draw_map()
-    draw_live_label()
-    draw_gamemap()
-    draw_ranked()
-    draw_red_point()
-    draw_blue_team()
-    draw_red_team()
+        draw_map()
+        draw_live_label()
+        draw_gamemap()
+        draw_ranked()
+        draw_red_point()
+        draw_blue_team()
+        draw_red_team()
     
     # already_clicked=False ## IMPORTANT
 
@@ -119,17 +121,19 @@ def draw_red_point():
 
 def draw_gamemap():
     global game_info
-    if game_info[0] == "CLASSIC":
-        
-        gamemap = ctk.CTkLabel(app,text="Summoner's Rift",bg_color=BACKGROUND,font=font)
-    elif game_info[0] == "ARAM":
-        gamemap = ctk.CTkLabel(app,text="ARAM",bg_color=BACKGROUND,font=font)
-    else: 
-        gamemap = ctk.CTkLabel(app,text="Unknown",bg_color=BACKGROUND,font=font)
-    gamemap.pack(padx=x+30,pady=210)
-    widgets.append(gamemap)
+    if data_recieved == True:
+        if game_info[0] == "CLASSIC":
+            
+            gamemap = ctk.CTkLabel(app,text="Summoner's Rift",bg_color=BACKGROUND,font=font)
+        elif game_info[0] == "ARAM":
+            gamemap = ctk.CTkLabel(app,text="ARAM",bg_color=BACKGROUND,font=font)
+        else: 
+            gamemap = ctk.CTkLabel(app,text="Unknown",bg_color=BACKGROUND,font=font)
+        gamemap.pack(padx=x+30,pady=210)
+        widgets.append(gamemap)
 def draw_ranked():
     global game_info
+    
     if game_info[1] == 4:
 
         queue_type = ctk.CTkLabel(app,text="Ranked SOLO/DUO",bg_color=BACKGROUND,font=font)
@@ -164,7 +168,7 @@ def draw_blue_team():
             y_level+=90
         for item in all_data[0:5]:
                 
-                print(f"Blue team {item[0]}")
+                
                 draw_icons(item[2])
         
         

@@ -59,7 +59,7 @@ dictionary_aram = {
     "Cleanse":1,
     "Ignite":14,
     "Exhaust":3,
-    "Smite":11
+    
 }
 def draw_spells(appp):
     global app,WIDTH,HEIGHT,font,widgets,center,spell1
@@ -226,34 +226,34 @@ def set_icon_right(name):
 def check_both_comboboxes(cb):
     if len(combo_boxes) != 2:
         combo_boxes.append(cb)
-    
-    else:
-        try:
+    # not needed for now
+    # else:
+    #     try:
             
-            if combo_boxes and combo_boxes[0] == cb:
-                print("Same widget")
-            else:
-                combo_boxes.append(cb)
-                print(combo_boxes)
+    #         if combo_boxes and combo_boxes[0] == cb:
+    #             print("Same widget")
+    #         else:
+    #             combo_boxes.append(cb)
+    #             print(combo_boxes)
+    #     except IndexError:
+    #         pass
+
+
+    if len(combo_boxes) == 2:
+        try:
+            left = combo_boxes[0]
+            right = combo_boxes[1]
+            if left.get() == right.get():
+                tk.messagebox.showerror(title="Error", message="Please choose different spells")
+
+                left.set("Spell 1")
+                set_icon_left("None")
+                right.set("Spell 2")
+                set_icon_right("None")
+                
+                combo_boxes.clear()  
         except IndexError:
             pass
-
-
-        if len(combo_boxes) == 2:
-            try:
-                left = combo_boxes[0]
-                right = combo_boxes[1]
-                if left.get() == right.get():
-                    tk.messagebox.showerror(title="Error", message="Please choose different spells")
-
-                    left.set("Spell 1")
-                    set_icon_left("None")
-                    right.set("Spell 2")
-                    set_icon_right("None")
-                    
-                    combo_boxes.clear()  
-            except IndexError:
-                pass
 
 def do():
     global status,api,port,combo_boxes

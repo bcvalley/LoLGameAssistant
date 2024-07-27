@@ -417,8 +417,8 @@ class InGame:
                 
             return all_data,data_recieved,game_info
         else:
-            print(request.json())
-            return (all_data,False)
+            
+            return (all_data,False,None)
 
     def getSummonerLevel(puuiddd,auth):
         
