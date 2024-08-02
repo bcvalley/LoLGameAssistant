@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image ,ImageTk, ImageDraw
 import backend,requests,threading,urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-import os,json
+import os,json,test_algo
 PATH = os.getcwd()
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
@@ -16,6 +16,7 @@ already_clicked = False
 all_data = None
 checking_for_match = False
 prof = backend.Profile()
+
 import game_dir
 def get_config_dir():
     path = f"{PATH}\\saved_config\\game_dir.json"
@@ -35,6 +36,7 @@ dictionary = backend.getChampionsWithID()
 game_info = []
 Y_level = 250
 Y_level_second = 250
+
 def live_game_draw(appp):
     global app,WIDTH,HEIGHT,already_clicked,data_recieved,all_data,dictionary,game_info
     
@@ -42,11 +44,12 @@ def live_game_draw(appp):
     WIDTH = app.winfo_screenwidth()
     HEIGHT = app.winfo_screenheight()
     center = WIDTH/2 
-    req_label = ctk.CTkLabel(app,text="You are not in match yet",text_color="red",font=('Montserrat',40,'bold'),anchor="center")
+    req_label = ctk.CTkLabel(app,text="You are neither in a game nor in a champ select",text_color="red",font=('Montserrat',40,'bold'),anchor="center")
     all_data,data_recieved,game_info = refresh()
 
-    
-    if data_recieved == False:
+    if True:
+        draw_champ_select()
+    elif data_recieved == False :
         
         req_label.place(x=center-100,y=HEIGHT/2-80)
         image_size = (60,60)
@@ -61,6 +64,7 @@ def live_game_draw(appp):
         #app.after(1000, live_game_draw, app)
         widgets.append(req_label)
         widgets.append(check_for_match_button)
+    
     else:   
         try:
             req_label.place_forget()
@@ -313,6 +317,132 @@ def draw_red_team():
     draw_rank()
     draw_winrate()
  
+##############################################
+#             IN CHAMPION SELECT             #
+##############################################
+def is_in_session(port,api):
+    url = f"https://127.0.0.1:{port}/lol-champ-select/v1/session"
+    request = requests.get(url,auth=('riot',api),verify=False)
+    if request.status_code == 200:
+        return True
+    else:
+        return False
+def get_visible_puuids(port,api):
+    url = f"https://127.0.0.1:{port}/lol-champ-select/v1/session"
+    request = requests.get(url,auth=('riot',api),verify=False)
+    data = request.json()
+    # response = open("session.json")
+    
+
+    
+    puuids = []
+    for part in data["myTeam"]:
+        if part["nameVisibilityType"] == "UNHIDDEN" or part["nameVisibilityType"] == "VISIBLE":
+            puuids.append(part["puuid"])
+    return puuids
+
+
+
+# def get_names_from_puuids(puuids):
+#     names = []
+#     for puuid in puuids:
+#         name,tag = getNameAndTag(puuid,port,api)
+#         names.append((name,tag))
+#     return names
+    
+    
+
+# def get_Real_Puuid(name,tag):
+#     url = f"https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{name}/{tag}?api_key=RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"
+#     request = requests.get(url=url)
+#     response = request.json()
+#     return response["puuid"]
+# def store_real_puuids(names_and_tags):
+#     real_puuids = []
+#     for name_and_tag in names_and_tags:
+#         real_puuids.append(get_Real_Puuid(name_and_tag[0],name_and_tag[1]))
+#     return real_puuids
+# puuids = get_visible_puuids(port,api) # fetched puuids from champ select
+# names_and_tags = get_names_from_puuids(puuids) #stored in a list of tuples
+# real_puuids = store_real_puuids(names_and_tags) # stores real puuids in a list
+
+
+
+def draw_champ_select():
+    blue_color = "#6C8EBF"
+    most_played_champions = test_algo.start_func(get_visible_puuids(port,api))# champ,wr,games
+    def draw_rectangles():
+        y_level = 250
+        
+        rect_height = 90
+        
+        
+        for i in range(1,6):
+            end_width = x + (WIDTH - x) / 2  - x
+        
+        
+            canvas = ctk.CTkCanvas(app, width=end_width, height=rect_height,)
+            
+            canvas.create_rectangle(x, y_level, end_width, y_level + rect_height)
+            canvas.configure(bg=blue_color,highlightbackground="black")
+            canvas.place(x=x,y=y_level)
+            widgets.append(canvas)
+            
+            y_level+=90
+        for item in most_played_champions:
+                draw_most_played(item[0])
+    def draw_most_played(icon_name):
+        global Y_level
+        
+        image_size = (90,90)
+        loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon_name}.png")
+        fav_champ_resized = loaded_champion_image.resize(image_size)
+        fav_champ_image = ImageTk.PhotoImage(fav_champ_resized)
+        fav_champ = ctk.CTkLabel(app,image=fav_champ_image,text="")
+        fav_champ.place(x=220,y=Y_level)
+        Y_level+=90
+        widgets.append(fav_champ)     
+    def draw_winrate_and_games():
+        center = WIDTH/2 
+        # center -= 40
+        y_wr = 280
+        y_games = 310
+        for item in most_played_champions:
+                    winrate = ctk.CTkLabel(app,text=f"Winrate: {item[1]}%",bg_color=blue_color,font=('Montserrat',17,'bold'),text_color="black")
+                    winrate.place(x=center-30,y=y_wr)
+                    widgets.append(winrate)
+                    games = ctk.CTkLabel(app,text=f"Games: {item[2]}",bg_color=blue_color,font=('Montserrat',17,'bold'),text_color="black")
+                    games.place(x=center-30,y=y_games)
+                    widgets.append(games)
+                    y_wr+=90
+                    y_games+=90
+    def draw_summoner_names():
+        x_start = x+90
+        y_start = 260
+        for item in most_played_champions:
+                    
+                    label = ctk.CTkLabel(app,text=f"{item[3]}#{item[4]}",bg_color=blue_color,font=('Montserrat',20,'bold'),text_color="black")
+                    label.place(x=x_start+3,y=y_start)
+                    widgets.append(label)
+                    y_start+= 90
+    
+    draw_rectangles()
+    draw_winrate_and_games()
+    draw_summoner_names()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def get_widgets():
     global already_clicked
     already_clicked=False
