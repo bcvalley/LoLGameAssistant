@@ -103,8 +103,7 @@ def draw_save(app, statuses):
         game_dir_label.configure(text="Game directory not found")
 
 
-
-
+    
 
 def save_game_dir(game_dir):
     path = f"{PATH}\\saved_config\\game_dir.json"

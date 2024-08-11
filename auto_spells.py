@@ -131,7 +131,7 @@ def draw_left_combobox():
 
     left_combo_box = ctk.CTkComboBox(app, width=200, height=40, values=values)
     left_combo_box.configure(command=lambda k: set_icon_left(k) or left_combo_box.set(k) or check_both_comboboxes(left_combo_box))
-    left_combo_box.grid(row=5, column=6)
+    left_combo_box.grid(row=5, column=6,rowspan=1)
     if spell1 != "None":
         left_combo_box.set(spell1)
     else:
@@ -151,7 +151,7 @@ def draw_right_combobox():
 
     right_combo_box = ctk.CTkComboBox(app, width=200, height=40, values=values)
     right_combo_box.configure(command=lambda k: set_icon_right(k) or right_combo_box.set(k) or check_both_comboboxes(right_combo_box))
-    right_combo_box.grid(row=5, column=11)
+    right_combo_box.grid(row=5, column=11,rowspan=1)
     if spell2 != "None":
         right_combo_box.set(spell2)
     else:
@@ -167,7 +167,7 @@ def draw_spell_one(name):
     spell_one_resized = loaded_spell_image.resize(image_size)
     spell_image = ImageTk.PhotoImage(spell_one_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")
-    spell.grid(row=5,column=8)
+    spell.grid(row=5,column=8,rowspan=2,sticky="n")
     spell1_picked(name)
     icons_update_left.append(spell)
     hotkey_D = ctk.CTkLabel(app,text="D",bg_color=BACKGROUND,font=font)
@@ -179,7 +179,7 @@ def draw_spell_two(name):
     spell_two_resized = loaded_spell_image.resize(image_size)
     spell_image = ImageTk.PhotoImage(spell_two_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")
-    spell.grid(row=5,column=9)
+    spell.grid(row=5,column=9,rowspan=2,sticky="n")
     spell2_picked(name)
     icons_update_right.append(spell)
     hotkey_F = ctk.CTkLabel(app,text="F",bg_color=BACKGROUND,font=font)
@@ -206,7 +206,7 @@ def draw_toggle():
     toggle_button.grid(row=7,column=8,columnspan=2)
     widgets.append(toggle_button)
     status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
-    status_label.grid(row=6,column=8,sticky="s")
+    status_label.grid(row=6,column=8,rowspan=1,sticky="s")
     widgets.append(status_label)
 
 def get_widgets():
