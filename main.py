@@ -4,7 +4,7 @@ from PIL import Image ,ImageTk, ImageDraw
 import ingame,backend,match_history
 import auto_pick,requests,os
 import auto_ban,auto_spells,auto_accept,saveload
-import game_dir
+import game_dir,switch_monitor
 WIDTH = 0
 HEIGHT = 0
 game_dir.game_dir = saveload.get_config_dir()
@@ -172,6 +172,11 @@ def menu(app,s_height):
                                        corner_radius=0
                                        )
     accept_button.grid(row=9,column=0,columnspan=4,sticky="w")
+    def draw_switch_monitor():
+        switch_monitor.move_to_next_monitor(app)
+
+    switch_monitor_button = ctk.CTkButton(app, text="Switch monitor",width=menu_width, command=draw_switch_monitor, bg_color="dimgray", fg_color="red", font=('Montserrat', 15, 'bold'))
+    switch_monitor_button.grid(row=10, column=0,columnspan=4,sticky='nw')
     #profile icon downloadProfileIcon(iconId)
     img = Image.open(downloadProfileIcon(iconId)).convert("RGBA")
     img=img.resize((80,80))
@@ -286,18 +291,19 @@ def getProfileIconPath(id):
 
 def mainUI():
     global WIDTH,HEIGHT
-    ctk.set_appearance_mode("dark")  # Modes: system (default), light, dark
-    ctk.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
+    ctk.set_appearance_mode("dark")  
+    ctk.set_default_color_theme("blue")  
 
-    app = ctk.CTk()  # create CTk window like you do with the Tk window
+    app = ctk.CTk()  
     
     WIDTH = app.winfo_screenwidth()
     
     
     HEIGHT = app.winfo_screenheight()
        
-    app.geometry(f"{WIDTH}x{HEIGHT}-7-0")
-    app.attributes("-alpha",1)
+    app._state_before_windows_set_titlebar_color = "zoomed"
+    app.attributes("-alpha",0.95)
+    
     menu(app,HEIGHT)
     
     app.mainloop()
