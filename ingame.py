@@ -64,9 +64,6 @@ def live_game_draw(appp):
         check_for_match_button = ctk.CTkButton(app,image=refresh_image,text="",command=lambda: live_game_draw(app),bg_color=BACKGROUND,fg_color=BACKGROUND,anchor="center",hover_color="yellow")
         check_for_match_button.grid(row=4,column=6,rowspan=3,columnspan=5)
         
-        # for x in widgets:
-        #     x.destroy()
-        #app.after(1000, live_game_draw, app)
         widgets.append(req_label)
         widgets.append(check_for_match_button)
     
