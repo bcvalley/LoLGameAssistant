@@ -1,6 +1,6 @@
 import customtkinter as ctk
-import numpy as np
-from PIL import Image ,ImageTk, ImageDraw,ImageFilter, ImageFont
+
+from PIL import Image ,ImageTk, ImageDraw
 import ingame,backend,match_history
 import auto_pick,requests,os
 import auto_ban,auto_spells,auto_accept,saveload
@@ -15,9 +15,7 @@ port,api = profile_info.getAPI(game_dir.game_dir)
 widgets = None
 path = os.getcwd()
 
-print()
-
-print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
+#print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
 def load_widgets():
     global widgets
     widgets = (
@@ -59,12 +57,12 @@ def menu(app,s_height):
     image_w_size = 70
     image_h_size = 70
     starting_position = 200
-    frame1 = ctk.CTkFrame(app,width=menu_width,height=s_height,fg_color=BACKGROUND)
+    frame1 = ctk.CTkFrame(app,width=menu_width,height=2000,fg_color=BACKGROUND)
     frame1.place(x=0,y=0)
-    for col in range(16):  # Assuming you want to configure columns 0 to 15
-        app.grid_columnconfigure(col, weight=2)
-    for row in range(16):  # Assuming you want to configure rows 0 to 15
-        app.grid_rowconfigure(row, weight=2)
+    for gird in range(20):
+        app.grid_columnconfigure(gird, weight=0,minsize=50)
+        app.grid_rowconfigure(gird, weight=0,minsize=50)
+   
     load_battle_image = Image.open(os.path.join(path,"icons\\battle.png"))
     battle_resized_image = load_battle_image.resize((image_w_size,image_h_size))
     battle_image = ImageTk.PhotoImage(battle_resized_image)
@@ -80,7 +78,7 @@ def menu(app,s_height):
                                        command=battle_button_clicked,
                                        corner_radius=0
                                        )
-    battle_button.place(x=0,y=starting_position)
+    battle_button.grid(row=4,column=0,columnspan=4,sticky="w")
 
     load_ingame_image = Image.open(os.path.join(path,"icons\\ingame.png"))
     ingame_resized_image = load_ingame_image.resize((image_w_size,image_h_size))
@@ -99,7 +97,7 @@ def menu(app,s_height):
                                        )
     
     
-    ingame_button.place(x=0,y=starting_position+(1*button_height))
+    ingame_button.grid(row=5,column=0,columnspan=4,sticky="w")
 
     loaded_lockin_image = Image.open(os.path.join(path,"icons\\autolock.png"))
     lockin_resized_image = loaded_lockin_image.resize((image_w_size,image_h_size))
@@ -119,7 +117,7 @@ def menu(app,s_height):
                                        command=lock_button_clicked,
                                        corner_radius=0
                                        )
-    lockin_button.place(x=0,y=starting_position+(2*button_height))
+    lockin_button.grid(row=6,column=0,columnspan=4,sticky="w")
     
     loaded_ban_image = Image.open(os.path.join(path,"icons\\ban.png"))
     ban_resized_image = loaded_ban_image.resize((image_w_size,image_h_size))
@@ -136,7 +134,7 @@ def menu(app,s_height):
                                        command=ban_button_clicked,
                                        corner_radius=0
                                        )
-    ban_button.place(x=0,y=starting_position+(3*button_height))
+    ban_button.grid(row=7,column=0,columnspan=4,sticky="w")
 
 
     loaded_spell_image = Image.open(os.path.join(path,"icons\\spell.png"))
@@ -154,7 +152,7 @@ def menu(app,s_height):
                                        command=spell_button_clicked,
                                        corner_radius=0
                                        )
-    spell_button.place(x=0,y=starting_position+(4*button_height))
+    spell_button.grid(row=8,column=0,columnspan=4,sticky="w")
 
     loaded_accept_image = Image.open(os.path.join(path,"icons\\accept.png"))
     accpet_resized_image = loaded_accept_image.resize((image_w_size,image_h_size))
@@ -173,7 +171,7 @@ def menu(app,s_height):
                                        command=accept_button_clicked,
                                        corner_radius=0
                                        )
-    accept_button.place(x=0,y=starting_position+(5*button_height))
+    accept_button.grid(row=9,column=0,columnspan=4,sticky="w")
     #profile icon downloadProfileIcon(iconId)
     img = Image.open(downloadProfileIcon(iconId)).convert("RGBA")
     img=img.resize((80,80))
@@ -189,17 +187,17 @@ def menu(app,s_height):
         load_widgets()
         saveload.draw_save(app,statuses)
     profile_button = ctk.CTkButton(app,image=tk_image,text="",bg_color=BACKGROUND,width=80,height=80,fg_color=BACKGROUND,hover_color="white",command=profile_clicked)
-    profile_button.place(x=10,y=10)
+    profile_button.grid(row=0,column=0,rowspan=2,columnspan=2,padx=10)
     #Player Name {username}#{tagline}
     username_label = ctk.CTkLabel(app,text=f" {username}#{tagline}",bg_color=BACKGROUND,font=('Montserrat',20,'bold'))
-    username_label.place(x=10,y=110)
+    username_label.grid(row=2,column=0,columnspan=3,padx=10,sticky="s")
     #search box 
     def click(*args): 
         search_box.delete(0, 'end') 
     search_box = ctk.CTkEntry(app,width=menu_width-40,height=30)
     search_box.insert(0, 'example#EUNE') 
     search_box.bind("<Button-1>", click) 
-    search_box.place(x=10,y=140)
+    search_box.grid(row=3,column=0,columnspan=3,sticky="n")
     #search button
     loaded_lense_image = Image.open(os.path.join(path,"icons\\lense.png"))
     lense_resized_image = loaded_lense_image.resize((20,20))
@@ -218,17 +216,18 @@ def menu(app,s_height):
                                        command=search_player,
                                        corner_radius=0
                                        )
-    lense_button.place(x=170,y=140)
+    lense_button.grid(row=3,column=3,sticky="nw")
     #player level {level}
     
     player_level = ctk.CTkLabel(app,text=f"{level}",font=('Montserrat',20,'bold'),fg_color="purple")
-    player_level.place(x=60,y=85,anchor="center")
+    player_level.grid(row=1,column=0,columnspan=2,sticky="s")
+    player_level.tkraise()
     #Rank Label {tier} {rank}    
     rank_label = ctk.CTkLabel(app,text=f" {tier} {rank}",font=('Montserrat',15,'bold'),text_color="black",bg_color="yellow")
-    rank_label.place(x=120,y=20)
+    rank_label.grid(row=0,column=2)
     #LP label LP : {lp}      
     lp_label = ctk.CTkLabel(app,text=f" LP : {lp} ",font=('Montserrat',15,'bold'),text_color="black",bg_color="yellow")
-    lp_label.place(x=120,y=50)
+    lp_label.grid(row=1,column=2,sticky="n")
     #Winrate label  WR:{winrate}%    
     winrate_label = ctk.CTkLabel(app,text=f"WR:{winrate}%",font=('Montserrat',15,'bold'))
     
@@ -236,7 +235,7 @@ def menu(app,s_height):
         winrate_label.configure(fg_color="green",bg_color="green")
     else:
         winrate_label.configure(fg_color="red",bg_color= "red")
-    winrate_label.place(x=120,y=80)
+    winrate_label.grid(row=1,column=2,sticky="s")
 
 def getProfileData(port,api):
     if port != 0 and api!=0:
@@ -294,17 +293,9 @@ def mainUI():
     
     WIDTH = app.winfo_screenwidth()
     
-    # puuid = aaa.getPUUID("easywins","EUNE","RGAPI-4ebfe54c-6d5d-493d-8506-30d87b55b75d")
-    # matches = aaa.getMatchIds("europe","RGAPI-4ebfe54c-6d5d-493d-8506-30d87b55b75d",puuid,20)
-    # for each_match in matches:
-    #     print(each_match)
-    # aaa.getIcon("Janna")
     
-    # game_data = aaa.getMatchData("europe","EUN1_3611605385","RGAPI-4ebfe54c-6d5d-493d-8506-30d87b55b75d")
-    # aaa.format_my_data()
     HEIGHT = app.winfo_screenheight()
-        
-    # ['CLASSIC', ['66tG3Ce5hqdDXSrgtc5vDzEw4tses4_MP968c2FW9Fb2BJ5uHVoWRAOZwf-gJIrjQTTFYVWySO2Oqg', 100, 122, 1645, 'easywins#EUNE']]
+       
     app.geometry(f"{WIDTH}x{HEIGHT}-7-0")
     app.attributes("-alpha",1)
     menu(app,HEIGHT)
