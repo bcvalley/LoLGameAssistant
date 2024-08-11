@@ -398,6 +398,9 @@ class InGame:
             data_recieved = True
             
             response = request.json()
+            # with open("ingame.json","r",encoding="utf-8") as f: FOR TESTING
+            #     response = json.load(f)
+            
             game_info.append(response["gameMode"])
             game_info.append(response["gameQueueConfigId"])
             
@@ -412,7 +415,7 @@ class InGame:
                 
                 level = InGame.getSummonerLevel(participant["puuid"],auth)
                 riotID = participant["riotId"]
-                
+                print(riotID)
                 all_data.append([puid,teamid,championId,profileIconId,tier,rank,winrate,level,riotID])
                 
             return all_data,data_recieved,game_info

@@ -1,8 +1,8 @@
 import requests
-import warnings,ijson
-import time
-api = "pOPqO9lF6FFm9K6CcPRiSw"
-port = 55309
+import warnings
+
+api = ""
+port = 0
 def best_champion(lst):
     winrate = {}
     ## has to find the champion with most wins
@@ -49,17 +49,19 @@ def get_200_games(puuid, port, api):
     url = f'https://127.0.0.1:{port}/lol-match-history/v1/products/lol/{puuid}/matches?begIndex=0&endIndex=100'
     request = requests.get(url=url, auth=('riot', api), verify=False)
     response = request.json()
-    
-    for each_game in response["games"]["games"]:
-        if each_game["participants"][0]["championId"] >1000:
-            continue
-        champ_ids.append((each_game["participants"][0]["championId"],each_game["participants"][0]["stats"]["win"]))
+    if name != "error":
+        for each_game in response["games"]["games"]:
+            if each_game["participants"][0]["championId"] >1000:
+                continue
+            champ_ids.append((each_game["participants"][0]["championId"],each_game["participants"][0]["stats"]["win"]))
 
-    pair = extract_max_pair(best_champion(champ_ids))
-    champ = id_to_champ(pair[0])
-    
-    winrate = pair[1][0]/pair[1][1]
-    return champ,round(winrate*100),pair[1][1],name,tag
+        pair = extract_max_pair(best_champion(champ_ids))
+        champ = id_to_champ(pair[0])
+        
+        winrate = pair[1][0]/pair[1][1]
+        return champ,round(winrate*100),pair[1][1],name,tag
+    else:
+        return "error","error","error","error","error"
     
 
     
@@ -95,7 +97,11 @@ def getNameAndTag(puuid,port,api):
         url = f"https://127.0.0.1:{port}/lol-summoner/v2/summoners/puuid/{puuid}"
         request = requests.get(url,auth=('riot',api),verify=False)
         response = request.json()
-        return response["gameName"],response["tagLine"]
+        if request.status_code == 200:
+
+            return response["gameName"],response["tagLine"]
+        else:
+            return "error","error"
 # game_name,tag = getNameAndTag(puuids[3], port, api)
 # print(game_name,tag)
 # game_name,tag = getNameAndTag(puuids[4], port, api)

@@ -51,7 +51,8 @@ def draw_label():
     global center
     
     draw_label = ctk.CTkLabel(app,text="Auto Pick Champion",bg_color=BACKGROUND,font=font,anchor="center")
-    draw_label.place(x=center,y=200)
+    draw_label.grid(row=4,column=12,columnspan=3)
+
     widgets.append(draw_label)
 def draw_champion_icon(icon):
     global center,champ_picked
@@ -61,7 +62,8 @@ def draw_champion_icon(icon):
     pick_champ_resized = loaded_champion_image.resize(image_size)
     pick_champ_image = ImageTk.PhotoImage(pick_champ_resized)
     pick_champ = ctk.CTkLabel(app,image=pick_champ_image,text="")
-    pick_champ.place(x=center-20,y=250)
+    pick_champ.grid(row=5,column=11,columnspan=2,rowspan=2,padx=40)
+
     widgets.append(pick_champ)
     champions_picked(champ_picked)
 def draw_combobox():
@@ -79,7 +81,7 @@ def draw_combobox():
             combobox.set(loaded_champion_from_config)
             set_name_of_champion(loaded_champion_from_config)
     CTkScrollableDropdown(combo_box,values=values,command=lambda k: do_my_job(combo_box,k),autocomplete=True,button_height=30)
-    combo_box.grid(row=5,column=9)
+    combo_box.grid(row=5,column=12,rowspan=1,columnspan=5,padx=120)
     do_my_job(combo_box,loaded_champion_from_config)
     widgets.append(combo_box)
 
@@ -129,10 +131,11 @@ def draw_toggle():
     
             
     toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white",command=switch)
-    toggle_button.place(x=center+120,y=300)
+    toggle_button.grid(row=6,column=12,columnspan=5,padx=120)
     widgets.append(toggle_button)
     status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
-    status_label.place(x=center-10,y=370)
+    #status_label.grid(row=7,column=11,columnspan=2,sticky="n")
+    status_label.grid(row=6,column=11,columnspan=2,rowspan=2)
     widgets.append(status_label)
         
 

@@ -38,7 +38,7 @@ def draw_label():
     global center,widgets
     
     draw_label = ctk.CTkLabel(app,text="Auto Queue Accept",bg_color=BACKGROUND,font=font,anchor="center")
-    draw_label.place(x=center,y=260)
+    draw_label.grid(row=4,column=12,columnspan=3)
     widgets.append(draw_label)
 status=False
 def draw_toggle():
@@ -47,19 +47,19 @@ def draw_toggle():
     
     
         toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white")
-        toggle_button.place(x=center,y=330)
+        toggle_button.grid(row=5,column=11,columnspan=7,sticky='we')
         widgets.append(toggle_button)
         status_label = ctk.CTkLabel(app,text="status: on",text_color="green",bg_color=BACKGROUND,font=("Monsserat",16))
-        status_label.place(x=center,y=300)
+        status_label.grid(row=5,column=11,rowspan=2)
         toggle_button.configure(command=lambda: switch(status_label))
         
         widgets.append(status_label)
     elif status ==False:
         toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white")
-        toggle_button.place(x=center,y=330)
+        toggle_button.grid(row=5,column=11,columnspan=5,sticky='we')
         widgets.append(toggle_button)
         status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
-        status_label.place(x=center,y=300)
+        status_label.grid(row=5,column=11,rowspan=2)
         toggle_button.configure(command=lambda: switch(status_label))
         
         widgets.append(status_label)

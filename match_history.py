@@ -1,6 +1,6 @@
 import customtkinter as ctk
 import tkinter as tk
-import os
+import os,ast
 from PIL import Image, ImageTk, ImageDraw, ImageFilter, ImageFont
 import backend
 from CTkScrollableDropdown import *
@@ -24,10 +24,10 @@ canvas = None
 sortable_champions = None
 aaa = None
 fetched = False
-
-
+canvas_width=  0
+row,col,rowspan,colspan = 0,4,10,9
 def draw_match_history(appp,username,tagline):
-    global app, center, WIDTH, HEIGHT, font, widgets, y, image_refs, all_games, canvas, sortable_champions, aaa,fetched
+    global app,canvas_width, center, WIDTH, HEIGHT, font, widgets, y, image_refs, all_games, canvas, sortable_champions, aaa,fetched
     app = appp
     try:
         canvas.destroy()
@@ -42,39 +42,50 @@ def draw_match_history(appp,username,tagline):
     sortable_champions = ["FILTER BY CHAMPION"]
     # Create the backend instance and get the match history
     
-    # if fetched ==False:
-    aaa = backend.Backend("europe", username, tagline, "RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417", count)
-    all_games = aaa.returnList()
-    fetched = True
+    if fetched ==False:
+        aaa = backend.Backend("europe", username, tagline, "RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417", count)
+        all_games = aaa.returnList()
+    # with open("matches.txt", "r") as f:
+    #     all_games = ast.literal_eval(f.read()) FOR TESTING
     
-
-    # Create a canvas and a vertical scrollbar
-    canvas_width = WIDTH - x - 30
-    HEIGHT -= 70
-    canvas = tk.Canvas(app, width=canvas_width, height=HEIGHT, bg=BACKGROUND)
-    widgets.append(canvas)
-    scrollbar = tk.Scrollbar(app, orient="vertical", command=canvas.yview)
-    widgets.append(scrollbar)
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    # Place the canvas and scrollbar
-    canvas.place(x=x, y=100, width=canvas_width - scrollbar.winfo_width(), height=HEIGHT-100)
-    scrollbar.place(x=x + canvas_width - scrollbar.winfo_width(), y=100, height=HEIGHT-100)
+   
     
-    # Populate the canvas with rectangles and images
-    y = 0  # Starting y position
-    z = 330
-    refresh(all_games, canvas, aaa, sortable_champions)
-    getMostPlayedChamp(all_games)
-    # Update the scroll region of the canvas
-    canvas.update_idletasks()
-    canvas.config(scrollregion=canvas.bbox("all"))
-    filter_combobox, sort_combobox, combo_box, refresh_button = draw_comboboxes(sortable_champions)
-    widgets.append(filter_combobox)
-    widgets.append(sort_combobox)
-    widgets.append(combo_box)
-    widgets.append(refresh_button)
-    refresh_button.configure(command=lambda: refresh_clicked(filter_combobox, sort_combobox,combo_box))
+        fetched = True
+        
+        offset_x = (2.8/100)*WIDTH
+        
+        # Create a canvas and a vertical scrollbar
+        canvas_width = WIDTH - x -offset_x
+        #                          ^
+        #                    4,3%  |
+        print(HEIGHT)
+        offset_y = (44.5/100)*HEIGHT
+        
+        canvas_height = HEIGHT - offset_y
+        canvas = tk.Canvas(app, width=canvas_width, height=canvas_height, bg=BACKGROUND)
+        widgets.append(canvas)
+        
+        
+        
+        # Place the canvas and scrollbar
+        canvas.grid(row=0,column=4,columnspan=10,rowspan=9,sticky="nsew")
+        bind_mousewheel(canvas)
+        #scrollbar.grid(row=0,column=14,rowspan=8,sticky="ns")
+        
+        # Populate the canvas with rectangles and images
+        y = 0  # Starting y position
+        z = 330
+        refresh(all_games, canvas, aaa, sortable_champions)
+        getMostPlayedChamp(all_games)
+        # Update the scroll region of the canvas
+        canvas.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
+        filter_combobox, sort_combobox, combo_box, refresh_button = draw_comboboxes(sortable_champions)
+        widgets.append(filter_combobox)
+        widgets.append(sort_combobox)
+        widgets.append(combo_box)
+        widgets.append(refresh_button)
+        refresh_button.configure(command=lambda: refresh_clicked(filter_combobox, sort_combobox,combo_box))
 
 def refresh_clicked(filter_combobox, sort_combobox,champ_combobox):
     global all_games, canvas, aaa, sortable_champions
@@ -89,81 +100,109 @@ def refresh_clicked(filter_combobox, sort_combobox,champ_combobox):
             filtered_sorted_games = champ_filter(champ_combobox.get(),filtered_sorted_games)
         refresh(filtered_sorted_games, canvas, aaa, sortable_champions)
 
-    
-
+def bind_mousewheel(canvas):
+    canvas.bind_all("<MouseWheel>", on_mousewheel)
+def on_mousewheel(event):
+    if event.num == 5 or event.delta == -120:
+        canvas.yview_scroll(2, "units")
+    elif event.num == 4 or event.delta == 120:
+        canvas.yview_scroll(-2, "units")
 def draw_comboboxes(values: list):
+    my_row = 4
+    my_row = check_grid(my_row)
     filter_values = ["FILTER BY", "WINS", "LOSSES", "NORMAL", "FLEX", "SOLO/DUO", "ARAM"]
-    filter_combobox = ctk.CTkComboBox(app, values=filter_values, width=200, height=20)
-    filter_combobox.grid(row=1,column=4,padx= 20)
-
+    filter_combobox = ctk.CTkComboBox(app, values=filter_values, width=200, height=40)
+    filter_combobox.grid(row=my_row-1, column=5,padx=10,sticky="n")
+    
     sort_values = ["SORT BY", "Most Played Champion", "Most Kills", "Most Deaths", "Most Assists", "Least Kills", "Least Assists", "Least Deaths", "Best K/D/A"]
-    sort_combobox = ctk.CTkComboBox(app, values=sort_values, width=200, height=20)
-    sort_combobox.grid(row=1,column=5)
+    sort_combobox = ctk.CTkComboBox(app, values=sort_values, width=200, height=40)
+    sort_combobox.grid(row=my_row-1, column=6,sticky="n")
 
     loaded_refresh_image = Image.open(f"{PATH}\\icons\\refresh.png")
-    refresh_resized_image = loaded_refresh_image.resize((20, 20))
+    refresh_resized_image = loaded_refresh_image.resize((30, 30))
     refresh_image = ImageTk.PhotoImage(refresh_resized_image)
     
     refresh_button = ctk.CTkButton(app, image=refresh_image, text="", fg_color=BACKGROUND, bg_color=BACKGROUND, height=30, width=30, hover_color="white", corner_radius=0)
-    refresh_button.place(x=940, y=63)
+    refresh_button.grid(row=my_row-1, column=8,sticky="n")
     
-    combo_box = ctk.CTkComboBox(app,values=values, width=200, height=20)
+    combo_box = ctk.CTkComboBox(app,values=values, width=200, height=40)
     
-    combo_box.grid(row=1,column=6)
+    combo_box.grid(row=my_row-1, column=7,sticky="n",padx=10)
     
     return filter_combobox, sort_combobox, combo_box, refresh_button
-
+def check_grid(my_row):
+    if my_row<=rowspan:
+        my_row =rowspan
+        return my_row
+    return my_row
 def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
-    global y, z, image_refs
-
+    global y, z, image_refs,WIDTH
+    ## offset spacings
+    #icon dimentions
+    x1,x2 = int((7.81/100)*WIDTH),int((7.81/100)*WIDTH)
+    element0 = (4.68/100)*WIDTH # image 4.69% 60
+    
+    element1 = (13.28/100)*WIDTH # kda and duration 13.28% 170
+    element3 = (18.75/100)*WIDTH # cs 18.75% 240
+    element4 = (23.78/100)*WIDTH # items 25.78% 330
+    mini_space = (3.13/100)*WIDTH # spacing between items 3.13% 40
+    element5 = (51.23/100)*WIDTH # mode and map 52.23% 670
+    element6 = (62.41/100)*WIDTH # damage and taken 66.41% 850
+    element7 = (74.86/100)*WIDTH # win and date 80.86% 1035
+    distance = [element1-element0,element3-element1,element4-element3,element5-element4,element6-element5,element7-element6]
+    
+    
     if canvas is None:
         return
     canvas.delete("all")
-    y = 0
+    y = 0 
     for each_game in all_games:
         print(each_game)
-        z = 330
+        element4 = 330
         icon_ending = y + 50
         if each_game[-2] == True:
-            canvas.create_rectangle(10, y, 1110, y + 100, fill="#6C8EBF")
+            canvas.create_rectangle(10, y, canvas_width, y + 100, fill="#6C8EBF")
         else:
-            canvas.create_rectangle(10, y, 1110, y + 100, fill="#db5e56")
+            canvas.create_rectangle(10, y, canvas_width, y + 100, fill="#db5e56")
         aaa.getIcon(each_game[0])
         if each_game[0] not in sortable_champions:
             sortable_champions.append(each_game[0])
         aaa.getItems(each_game[6])
-        image_size = (100, 100)
+        image_size = (x1, x2)
         loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{each_game[0]}.png")
         champ_resized = loaded_champion_image.resize(image_size)
         champ_image = ImageTk.PhotoImage(champ_resized)
-        canvas.create_image(40, icon_ending, image=champ_image)
+        canvas.create_image(element0, icon_ending, image=champ_image)
+        
         image_refs.append(champ_image)
-        canvas.create_text(140, icon_ending-30, text=f"{each_game[1]//60}m{each_game[1]%60}s ", fill="white", font=("Montserrat", 16, "bold"))
-        canvas.create_text(140, icon_ending+20, text=f"{each_game[2]}/{each_game[3]}/{each_game[4]} ", fill="black", font=("Montserrat", 16, "bold"))
-        canvas.create_text(240, icon_ending+20, text=f"CS:{each_game[5]}", font=("Montserrat", 12, "bold"))
+        canvas.create_text(element1, icon_ending-30, text=f"{each_game[1]//60}m{each_game[1]%60}s ", fill="white", font=("Montserrat", 16, "bold"))
+        canvas.create_text(element1, icon_ending+20, text=f"{each_game[2]}/{each_game[3]}/{each_game[4]} ", fill="black", font=("Montserrat", 16, "bold"))
+        
+        
+        canvas.create_text(element3, icon_ending+20, text=f"CS:{each_game[5]}", font=("Montserrat", 12, "bold"))
         for each_item in each_game[6]:
             image_size = (30, 30)
             if each_item == 0:
-                canvas.create_rectangle(z-15, icon_ending-15, z+15, icon_ending+15, fill="grey")
-                z += 40
+                canvas.create_rectangle(element4-15, icon_ending-15, element4+15, icon_ending+15, fill="grey")
+                element4 += mini_space
             else:
                 loaded_item_image = Image.open(f"{PATH}\\items\\{each_item}.png")
                 item_resized = loaded_item_image.resize(image_size)
                 item_image = ImageTk.PhotoImage(item_resized)
-                canvas.create_image(z, icon_ending, image=item_image)
+                canvas.create_image(element4, icon_ending, image=item_image)
                 image_refs.append(item_image)
-                z += 40
+                element4 += mini_space
         aaa.getQueues()
         game_map, description = aaa.loadJsonQueues(each_game[7])
-        canvas.create_text(670, icon_ending-40, text=f"{game_map}", font=("Montserrat", 12, "bold"))
-        canvas.create_text(670, icon_ending+22, text=f"{description}", font=("Montserrat", 12, "bold"))
-        canvas.create_text(850,icon_ending-10,text=f"DMG Dealt:{each_game[8]}",font=("Montserrat", 12, "bold"))
-        canvas.create_text(850,icon_ending+10,text=f"DMG Taken:{each_game[9]}",font=("Montserrat", 12, "bold"))
+        canvas.create_text(element5, icon_ending-40, text=f"{game_map}", font=("Montserrat", 12, "bold"))
+        canvas.create_text(element5, icon_ending+22, text=f"{description}", font=("Montserrat", 12, "bold"))
+        canvas.create_text(element6,icon_ending-10,text=f"DMG Dealt:{each_game[8]}",font=("Montserrat", 12, "bold"))
+        canvas.create_text(element6,icon_ending+10,text=f"DMG Taken:{each_game[9]}",font=("Montserrat", 12, "bold"))
         if each_game[10] == True:
-            canvas.create_text(1035, icon_ending-20, text=f"WIN", font=font)
+            canvas.create_text(element7, icon_ending-20, text=f"WIN", font=font)
         else:
-            canvas.create_text(1035, icon_ending-20, text="LOSS", font=font)
-        canvas.create_text(1035, icon_ending+20, text=f"{aaa.timestamp_to_days_ago(each_game[11])} days ago", font=("Montserrat", 15, "bold"))
+            canvas.create_text(element7, icon_ending-20, text="LOSS", font=font)
+        canvas.create_text(element7, icon_ending+20, text=f"{aaa.timestamp_to_days_ago(each_game[11])} days ago", font=("Montserrat", 15, "bold"))
         y += 90  # Increment y position for the next rectangle
     canvas.update_idletasks()
     # Adjust the canvas height dynamically

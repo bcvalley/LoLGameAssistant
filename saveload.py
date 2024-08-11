@@ -34,7 +34,7 @@ def draw_save(app, statuses):
     statuses[4] = spell2
     canvas = ctk.CTkCanvas(app, width=2000, height=3000, bg=BACKGROUND, highlightthickness=0)
     application = app
-    canvas.place(x=220, y=0)
+    canvas.grid(row=0, column=4,columnspan=14,rowspan=2000)
     canvas.create_rectangle(center - 335, 50, center + 100, 350, fill="dimgray")
     canvas.create_rectangle(center - 335, 370, center + 100, 670, fill="dimgray")
     canvas.create_text(center - 320, 80, text="Save Current Configuration", fill="white", font=("Montserrat", 20, "bold"), anchor="w")
@@ -65,8 +65,8 @@ def draw_save(app, statuses):
         canvas.create_text(center, 220, text="OFF", fill="red", font=("Montserrat", 18, "bold"), anchor="w")
     
     save_button = ctk.CTkButton(app, text="Save", command=lambda: save(statuses), bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
-    save_button.place(x=center + 150, y=300)
-
+    save_button.grid(row=5, column=8)
+    save_button.tkraise()
     widgets.append(save_button)
     canvas.create_text(center - 320, 390, text="Load Configuration", fill="white", font=("Montserrat", 20, "bold"), anchor="w")
     canvas.create_text(center - 300, 460, text="Pick", fill="white", font=("Montserrat", 15, "bold"), anchor="w")
@@ -75,13 +75,14 @@ def draw_save(app, statuses):
     canvas.create_text(center, 460, text="Accept", fill="white", font=("Montserrat", 15, "bold"), anchor="w")
     
     load_button = ctk.CTkButton(app, text="Load", command=lambda: load(), bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
-    load_button.place(x=center + 150, y=615)
+    load_button.grid(row=9, column=8)
     widgets.append(load_button)
     widgets.append(canvas)
 
-    canvas.create_rectangle(10,50,340,130,fill="dimgray")
+    canvas.create_rectangle(5,50,300,130,fill="dimgray")
     game_dir_label = ctk.CTkLabel(app,font=('Montserrat', 16, 'bold'),bg_color="dimgray")
-    game_dir_label.place(x=240,y=70)
+    game_dir_label.grid(row=1,column=2,columnspan=4,sticky="e")
+    #game_dir_label.tkraise()
     widgets.append(game_dir_label)
     def open_folder():
         directory = ctk.filedialog.askdirectory()
@@ -89,7 +90,7 @@ def draw_save(app, statuses):
         save_game_dir(directory)
     
     get_game_dir = ctk.CTkButton(app, text="Change Game Directory", command=open_folder, bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
-    get_game_dir.place(x=360, y=100)
+    get_game_dir.grid(row=2, column=3,columnspan=4,sticky='n')
     widgets.append(get_game_dir)
     config_path = f"{PATH}\\saved_config\\game_dir.json"
     if os.path.exists(config_path):
