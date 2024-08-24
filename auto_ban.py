@@ -78,7 +78,7 @@ def draw_label():
     global center
     
     draw_label = ctk.CTkLabel(app,text="Auto Ban Champion",bg_color=BACKGROUND,font=font,anchor="center")
-    draw_label.grid(row=4,column=12,columnspan=3)
+    draw_label.place(relx=0.5,rely=0.2)
     widgets.append(draw_label)
 def draw_champion_icon(icon):
     global center
@@ -87,12 +87,14 @@ def draw_champion_icon(icon):
     ban_champ_resized = loaded_champion_image.resize(image_size)
     ban_champ_image = ImageTk.PhotoImage(ban_champ_resized)
     ban_champ = ctk.CTkLabel(app,image=ban_champ_image,text="")
-    ban_champ.grid(row=5,column=11,columnspan=2,rowspan=2,padx=40)
+    ban_champ.place(relx=0.45,rely=0.25)
     widgets.append(ban_champ)
     ban_champion_picked(icon)
 def draw_combobox():
     global values
     combo_box = ctk.CTkComboBox(app,width=200,height=40)
+    wait_label = ctk.CTkLabel(app,text="Please wait...",bg_color=BACKGROUND,font=font,anchor="center")
+    wait_label.place(relx=0.5,rely=0.5)
     def do_my_job(combobox ,k):
         global loaded_ban_champion_from_config
         if loaded_ban_champion_from_config == "None":
@@ -104,9 +106,10 @@ def draw_combobox():
             combobox.set(loaded_ban_champion_from_config)
             set_name_of_champion(loaded_ban_champion_from_config)
     CTkScrollableDropdown(combo_box,values=values,command=lambda k: do_my_job(combo_box,k),autocomplete=True,button_height=30)
-    combo_box.grid(row=5,column=12,rowspan=1,columnspan=5,padx=120)
+    combo_box.place(relx=0.55,rely=0.25)
     do_my_job(combo_box,loaded_ban_champion_from_config)
     widgets.append(combo_box)
+    wait_label.destroy()
 status=False
 def draw_toggle():
     
@@ -122,10 +125,10 @@ def draw_toggle():
     
             
     toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white",command=switch)
-    toggle_button.grid(row=6,column=12,columnspan=5,padx=120)
+    toggle_button.place(relx=0.55,rely=0.3)
     widgets.append(toggle_button)
     status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
-    status_label.grid(row=6,column=11,columnspan=2,rowspan=2)
+    status_label.place(relx=0.46,rely=0.37)
     widgets.append(status_label)
     
         

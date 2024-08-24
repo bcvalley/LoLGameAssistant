@@ -1,9 +1,9 @@
 import customtkinter as ctk
 
 from PIL import Image ,ImageTk
-import backend,requests,urllib3,chardet
+import backend,requests,urllib3,chardet,loader,threading
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-import os,json,test_algo
+import os,json,test_algo,asyncio
 PATH = os.getcwd()
 BACKGROUND = "#242424" #BACKGROUND COLOR 
 app = None # Main CTK
@@ -17,7 +17,8 @@ icon_references = []
 all_data = None
 checking_for_match = False
 prof = backend.Profile()
-
+loading_label = None
+canvas = None
 import game_dir
 def get_config_dir():
     path = f"{PATH}\\saved_config\\game_dir.json"
@@ -39,49 +40,85 @@ dictionary = backend.getChampionsWithID()
 game_info = []
 Y_level = 250
 Y_level_second = 250
+loop = asyncio.new_event_loop()
+def stop_event_loop():
+        global loop
+        if loop.is_running():
+            loop.stop()
+def start_loop():
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_forever()
+    except Exception as e:
+        print(f"Event loop stopped: {e}")
+        loop.stop()
 
-def live_game_draw(appp):
-    global app,WIDTH,HEIGHT,already_clicked,data_recieved,all_data,dictionary,game_info
+
+threading.Thread(target=start_loop, daemon=True).start()
+async def run_task(coro):
+    # Schedule a coroutine on the event loop
+    task = asyncio.create_task(coro)
+    await task
+
+def run_coroutine(coro):
+    # Ensure this function is called from the main thread
+    asyncio.run_coroutine_threadsafe(run_task(coro), loop)
+async def live_game_draw(appp):
+    global app,WIDTH,HEIGHT,already_clicked,canvas,data_recieved,loading_label,all_data,dictionary,game_info
     
     app = appp
     WIDTH = app.winfo_screenwidth()
     HEIGHT = app.winfo_screenheight()
      
     
-    all_data,data_recieved,game_info = refresh()
+    all_data,data_recieved,game_info = await refresh()
     cv_width, cv_height = get_canvas_dimentions()
     canvas = ctk.CTkCanvas(app, width=cv_width, height=cv_height, bg=BACKGROUND, highlightthickness=0)
-    canvas.grid(row=4,column=3,columnspan=12,rowspan=9,sticky="nw",padx=40,pady=30)
-    if is_in_session(port,api):
-        draw_champ_select(canvas)
-    elif data_recieved == False :
-        req_label = ctk.CTkLabel(app,text="You are neither in a game nor in a champ select",text_color="red",font=('Montserrat',40,'bold'),anchor="center")
-        req_label.grid(row=3,column=6,columnspan=5,rowspan=2)
+    canvas.grid(row=5,column=3,columnspan=12,rowspan=9,sticky="nw",padx=40,pady=30)
+    loading_label = ctk.CTkLabel(app, text="Loading", font=('Montserrat', 20, 'bold'))
+    widgets.append(canvas)
+    # if is_in_session(port,api):
+    #     loader.thread_should_run = True
+    #     loading_label.place(relx=0.5, rely=0.9, anchor="center")
+    #     ap = threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start()
+    #     await draw_champ_select(canvas)
+    
+    #el
+    if True:#data_recieved == False :
+        req_label = ctk.CTkLabel(app,text="You are neither in a game nor in a champ select",text_color="red",font=('Montserrat',30,'bold'),anchor="center")
+        req_label.place(relx=0.6, rely=0.2, anchor="center")
         image_size = (60,60)
         loaded_refresh_image = Image.open(f"{PATH}\\icons\\refresh.png")
         refresh_resized = loaded_refresh_image.resize(image_size)
         refresh_image = ImageTk.PhotoImage(refresh_resized)
-        check_for_match_button = ctk.CTkButton(app,image=refresh_image,text="",command=lambda: live_game_draw(app),bg_color=BACKGROUND,fg_color=BACKGROUND,anchor="center",hover_color="yellow")
-        check_for_match_button.grid(row=4,column=6,rowspan=3,columnspan=5)
+        check_for_match_button = ctk.CTkButton(app,image=refresh_image,text="",command=lambda: run_coroutine(live_game_draw(app)),bg_color=BACKGROUND,fg_color=BACKGROUND,anchor="center",hover_color="yellow")
+        check_for_match_button.place(relx=0.6, rely=0.3, anchor="center")
         
         widgets.append(req_label)
         widgets.append(check_for_match_button)
+        loader.thread_should_run = False
     
     else:   
         try:
             req_label.place_forget()
         except:AttributeError
-    
-        draw_map()
-        draw_live_label()
-        draw_gamemap()
-        draw_ranked()
-        draw_red_point()
-        draw_both_teams(canvas)
+        
+        loading_label.place(relx=0.5, rely=0.9, anchor="center")
+        ap = threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start()
+        await live_game()
         
     
     
-
+async def live_game():
+    global canvas
+    draw_map()
+    draw_live_label()
+    draw_gamemap()
+    draw_ranked()
+    draw_red_point()
+    draw_both_teams(canvas)
+    loader.thread_should_run = False
+    print(f"the state is {loader.thread_should_run}")
     
 def draw_map():
     global app,game_info
@@ -122,8 +159,9 @@ def draw_red_point():
         image.grid(row=4,column=3,sticky="nw",padx=40)
         app.after(1000,hide,image)
     def hide(image):
-        image.grid_forget()
-        app.after(1000,blink,image)
+        if image.winfo_exists():
+            print("exists")
+       
             
     blink(red_point_image)
 
@@ -164,7 +202,8 @@ def get_canvas_dimentions():
 def draw_both_teams(canvas):
 
     cv_width, cv_height = get_canvas_dimentions()
-    
+    for i in all_data:
+        print(i)
     blue_color = "#6C8EBF"
     red_color = "#db5e56"
     
@@ -180,88 +219,93 @@ def draw_both_teams(canvas):
     draw_ranks(canvas,cv_width,cv_height,all_data,pxSize)
     draw_winrate(canvas,cv_width,cv_height,all_data,pxSize)
     draw_rank_image(canvas,cv_width,cv_height,all_data,pxSize)
+    
+    loader.thread_should_run = False
+    
+    
 
 
     
-    def draw_rectangles():
-        y_level = 250
+    # def draw_rectangles():
+    #     y_level = 250
         
-        rect_height = 90
-        
-        
-        for i in range(1,6):
-            end_width = x + (WIDTH - x) / 2  - x
+    #     rect_height = 90
         
         
-            canvas = ctk.CTkCanvas(app, width=end_width, height=rect_height)
+    #     for i in range(1,6):
+    #         end_width = x + (WIDTH - x) / 2  - x
+        
+        
+    #         canvas = ctk.CTkCanvas(app, width=end_width, height=rect_height)
             
-            canvas.create_rectangle(x, y_level, end_width, y_level + rect_height)
-            canvas.configure(bg=red_color,highlightbackground="black")
-            canvas.grid(row=5,column=8,columnspan=6,rowspan=6,sticky="nw",padx=40)
-            widgets.append(canvas)
+    #         canvas.create_rectangle(x, y_level, end_width, y_level + rect_height)
+    #         canvas.configure(bg=red_color,highlightbackground="black")
+    #         canvas.grid(row=5,column=8,columnspan=6,rowspan=6,sticky="nw",padx=40)
+    #         widgets.append(canvas)
             
-            y_level+=90
-        for item in all_data[5:]:
-                draw_icons(item[2])
-    def draw_summoner_level():
-        end_width = x + (WIDTH - x) / 2 
-        x_start = end_width+90
-        y_start = 310
-        for item in all_data[5:]:
-            label = ctk.CTkLabel(app,text=f"LVL {item[7]}",bg_color=red_color,text_color="black",font=('Montserrat',20,'bold'))
-            label.place(x=x_start+3,y=y_start)
-            widgets.append(label)
-            y_start+= 90
+    #         y_level+=90
+    #     for item in all_data[5:]:
+    #             draw_icons(item[2])
+    # def draw_summoner_level():
+    #     end_width = x + (WIDTH - x) / 2 
+    #     x_start = end_width+90
+    #     y_start = 310
+    #     for item in all_data[5:]:
+    #         label = ctk.CTkLabel(app,text=f"LVL {item[7]}",bg_color=red_color,text_color="black",font=('Montserrat',20,'bold'))
+    #         label.place(x=x_start+3,y=y_start)
+    #         widgets.append(label)
+    #         y_start+= 90
         
-    def draw_summoner_names():
-        end_width = x + (WIDTH - x) / 2 
-        x_start = end_width+90
-        y_start = 260
-        for item in all_data[5:]:
+    # def draw_summoner_names():
+    #     end_width = x + (WIDTH - x) / 2 
+    #     x_start = end_width+90
+    #     y_start = 260
+    #     for item in all_data[5:]:
                     
-                    label = ctk.CTkLabel(app,text=f"{item[8]}",bg_color=red_color,text_color="black",font=('Montserrat',20,'bold'))
-                    label.place(x=x_start+3,y=y_start)
-                    widgets.append(label)
-                    y_start+= 90
+    #                 label = ctk.CTkLabel(app,text=f"{item[8]}",bg_color=red_color,text_color="black",font=('Montserrat',20,'bold'))
+    #                 label.place(x=x_start+3,y=y_start)
+    #                 widgets.append(label)
+    #                 y_start+= 90
 
-    def draw_rank():
-        center = WIDTH-100
-       # center -= 40
-        y=280
-        for item in all_data[5:]:
-                    rank = ctk.CTkLabel(app,text=f"{item[4]} {item[5]}",bg_color=red_color,font=('Montserrat',17,'bold'),text_color="black")
-                    rank.place(x=center-30,y=y)
-                    widgets.append(rank)
-                    draw_devision(item[4],x=center-130,y=y-28,color="#db5e56")
-                    y+=90
+    # def draw_rank():
+    #     center = WIDTH-100
+    #    # center -= 40
+    #     y=280
+    #     for item in all_data[5:]:
+    #                 rank = ctk.CTkLabel(app,text=f"{item[4]} {item[5]}",bg_color=red_color,font=('Montserrat',17,'bold'),text_color="black")
+    #                 rank.place(x=center-30,y=y)
+    #                 widgets.append(rank)
+    #                 draw_devision(item[4],x=center-130,y=y-28,color="#db5e56")
+    #                 y+=90
 
-    def draw_winrate():
-        center = WIDTH-100 
-        # center -= 40
-        y=310
-        for item in all_data[5:]:
-                    winrate = ctk.CTkLabel(app,text=f"Winrate:{item[6]}%",bg_color=red_color,font=('Montserrat',17,'bold'),text_color="black")
-                    winrate.place(x=center-30,y=y)
-                    widgets.append(winrate)
-                    y+=90
-    def draw_icons(id):
-        global Y_level_second
-        end_width = x + (WIDTH - x) / 2 
-        x_start = end_width+90
-        icon_name = id_to_name(id)
-        image_size = (90,90)
-        loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon_name}.png")
-        pick_champ_resized = loaded_champion_image.resize(image_size)
-        pick_champ_image = ImageTk.PhotoImage(pick_champ_resized)
-        pick_champ = ctk.CTkLabel(app,image=pick_champ_image,text="")
-        pick_champ.place(x=x_start-90,y=Y_level_second)
-        widgets.append(pick_champ)
-        Y_level_second+=90    
-    draw_rectangles()
-    draw_summoner_names()
-    draw_summoner_level()
-    draw_rank()
-    draw_winrate()
+    # def draw_winrate():
+    #     center = WIDTH-100 
+    #     # center -= 40
+    #     y=310
+    #     for item in all_data[5:]:
+    #                 winrate = ctk.CTkLabel(app,text=f"Winrate:{item[6]}%",bg_color=red_color,font=('Montserrat',17,'bold'),text_color="black")
+    #                 winrate.place(x=center-30,y=y)
+    #                 widgets.append(winrate)
+    #                 y+=90
+    # def draw_icons(id):
+    #     global Y_level_second
+    #     end_width = x + (WIDTH - x) / 2 
+    #     x_start = end_width+90
+    #     icon_name = id_to_name(id)
+    #     image_size = (90,90)
+    #     loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon_name}.png")
+    #     pick_champ_resized = loaded_champion_image.resize(image_size)
+    #     pick_champ_image = ImageTk.PhotoImage(pick_champ_resized)
+    #     pick_champ = ctk.CTkLabel(app,image=pick_champ_image,text="")
+    #     pick_champ.place(x=x_start-90,y=Y_level_second)
+    #     widgets.append(pick_champ)
+    #     Y_level_second+=90    
+    # # draw_rectangles()
+    # # draw_summoner_names()
+    # # draw_summoner_level()
+    # # draw_rank()
+    # # draw_winrate()
+    stop_event_loop()
 def draw_blue_team_rectangles(canvas,cv_width,color,pxSize):
     x=0
     y=0
@@ -284,8 +328,8 @@ def draw_red_team_rectangles(canvas,cv_width,color,pxSize):
         y+=pxSize
 
 def draw_blue_icons(canvas, all_data, pxSize,cv_width):
-    y = 0
-   
+    y_blue = 0
+    y_red =0
     for player in all_data:
         icon_name = id_to_name(player[2])
         
@@ -298,10 +342,12 @@ def draw_blue_icons(canvas, all_data, pxSize,cv_width):
         icon_references.append(pick_champ_image)
         if player[1] == 100:
              
-            canvas.create_image(pxSize/2, y+(pxSize/2), image=pick_champ_image)  # Adjust y coordinate and anchor
+            canvas.create_image(pxSize/2, y_blue+(pxSize/2), image=pick_champ_image)
+            y_blue+=pxSize  # Adjust y coordinate and anchor
         else:
-            canvas.create_image((pxSize/2)+cv_width/2, y, image=pick_champ_image, anchor="s")  # Adjust y coordinate and anchor
-        y += pxSize
+            canvas.create_image((pxSize/2)+cv_width/2, y_red+(pxSize/2), image=pick_champ_image)
+            y_red += pxSize  # Adjust y coordinate and anchor
+        
 def draw_summoner_names(canvas,cv_width,cv_height,all_data,pxSize):
     blue_y = (4.5/100)*cv_height
     blue_x = (13.16/100)*cv_width # coords of blue name
@@ -309,10 +355,10 @@ def draw_summoner_names(canvas,cv_width,cv_height,all_data,pxSize):
     red_y = (4.5/100)*cv_height # coords of red name
     for player in all_data:
         if player[1] == 100:
-            canvas.create_text(blue_x,blue_y, text=f"{player[8]}")
+            canvas.create_text(blue_x,blue_y, text=f"{player[8]}",anchor="w")
             blue_y+=pxSize
         else:
-            canvas.create_text(red_x,red_y, text=f"{player[8]}")
+            canvas.create_text(red_x,red_y, text=f"{player[8]}",anchor="w")
             red_y+=pxSize
 def draw_levels(canvas,cv_width,cv_height,all_data,pxSize):
     blue_y = (9.5/100)*cv_height          
@@ -321,10 +367,10 @@ def draw_levels(canvas,cv_width,cv_height,all_data,pxSize):
     red_x =  cv_width/2 + blue_x
     for player in all_data:
         if player[1] == 100:
-            canvas.create_text(blue_x,blue_y, text=f"LVL:{player[7]}")
+            canvas.create_text(blue_x,blue_y, text=f"LVL:{player[7]}",anchor="w")
             blue_y+=pxSize
         else:
-            canvas.create_text(red_x,red_y, text=f"LVL:{player[7]}")
+            canvas.create_text(red_x,red_y, text=f"LVL:{player[7]}",anchor="w")
             red_y+=pxSize
 def draw_ranks(canvas,cv_width,cv_height,all_data,pxSize):
     blue_y = (9.5/100)*cv_height
@@ -332,8 +378,17 @@ def draw_ranks(canvas,cv_width,cv_height,all_data,pxSize):
     red_y = (9.5/100)*cv_height
     red_x = (90/100)*cv_width
     for player in all_data:
-        if player[4] != None and player[5] != None:
-            print(player[4],player[5])
+        if player[4] == None and player[5] == None:
+            
+            if player[1] == 100:
+            
+                
+                blue_y+=pxSize 
+            else:
+                
+                red_y+=pxSize
+        else:
+                
             if player[1] == 100:
             
                 canvas.create_text(blue_x,blue_y, text=f"{player[4]} {player[5]}")
@@ -347,7 +402,13 @@ def draw_winrate(canvas,cv_width,cv_height,all_data,pxSize):
     red_y = (12.5/100)*cv_height
     red_x = (90/100)*cv_width           
     for player in all_data:
-        if  player[6] != None:
+        if player[4] == None and player[5] == None:
+            if player[1] == 100:
+                blue_y+=pxSize
+            else:
+                red_y+=pxSize
+        else:
+        
             if player[1] == 100:
                 canvas.create_text(blue_x,blue_y, text=f"Winrate:{player[6]}%")
                 blue_y+=pxSize
@@ -357,11 +418,16 @@ def draw_winrate(canvas,cv_width,cv_height,all_data,pxSize):
 
 def draw_rank_image(canvas,cv_width,cv_height,all_data,pxSize):
     blue_y = (9/100)*cv_height
-    blue_x = (41.5/100)*cv_width
+    blue_x = (37.5/100)*cv_width
     red_y = (9/100)*cv_height
     red_x = (83/100)*cv_width 
     for player in all_data:
-        if player[4] != None and player[5] != None:
+        if player[4] == None and player[5] == None:
+            if player[1] == 100:
+                blue_y+=pxSize
+            else:
+                red_y+=pxSize
+        else:    
             if player[1] == 100:
                 image_size = (pxSize,pxSize)
                 loaded_item_image = Image.open(f"{PATH}\\ranks\\{player[4]}.png")
@@ -401,7 +467,7 @@ def get_visible_puuids(port,api):
     #data = request.json()
     with open("session.json","r") as f:
         data = json.load(f)
-    print(data)
+    
     teamId =0
     
     puuids = []
@@ -438,14 +504,14 @@ def get_visible_puuids(port,api):
 
 
 
-def draw_champ_select(canvas):
+async def draw_champ_select(canvas):
     blue_color = "#6C8EBF"
     red_color = "#db5e56"
     global icon_references
     cv_width, cv_height = get_canvas_dimentions()
-    puuids, teamId = get_visible_puuids(port,api)
+    puuids, teamId =  get_visible_puuids(port,api)
     
-    most_played_champions = test_algo.start_func(puuids)# champ,wr,games
+    most_played_champions = await test_algo.start_func(puuids)# champ,wr,games
     pxSize = int((6.59/100)* WIDTH)
     draw_blue_team_rectangles(canvas,cv_width,blue_color,pxSize)
     draw_red_team_rectangles(canvas,cv_width,red_color,pxSize)
@@ -510,7 +576,8 @@ def draw_champ_select(canvas):
     
     draw_winrate_and_games()
     draw_summoner_names()
-
+    loader.thread_should_run = False
+    loading_label.destroy()
 
 
 
@@ -529,13 +596,13 @@ def get_widgets():
     already_clicked=False
     return widgets
 
-def refresh():
+async def refresh():
     global port,api
     game_name , game_tag = getProfileData(port,api)
     
     my_puuid  = backend.InGame.getPUUID(game_name,game_tag,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
     
-    all_data,data_recieved,game_info = backend.InGame.getCurrentMatchData(my_puuid,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
+    all_data,data_recieved,game_info = await backend.InGame.getCurrentMatchData(my_puuid,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
     
     return all_data,data_recieved,game_info
     

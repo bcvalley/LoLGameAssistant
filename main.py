@@ -1,12 +1,14 @@
 import customtkinter as ctk
-
+import tkinter as tk
 from PIL import Image ,ImageTk, ImageDraw
 import ingame,backend,match_history
 import auto_pick,requests,os
-import auto_ban,auto_spells,auto_accept,saveload
-import game_dir,switch_monitor
+import auto_ban,auto_spells,auto_accept,saveload,loader
+import game_dir,switch_monitor,window2,asyncio,threading
 WIDTH = 0
 HEIGHT = 0
+
+first_time_launch = window2
 game_dir.game_dir = saveload.get_config_dir()
 game_dir.game_dir += "/lockfile"
 statuses = [None,None,None,None,None]
@@ -14,9 +16,14 @@ profile_info = backend.Profile()
 port,api = profile_info.getAPI(game_dir.game_dir)
 widgets = None
 path = os.getcwd()
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+    
+print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
+    
 
-#print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
 def load_widgets():
+
     global widgets
     widgets = (
         auto_accept.get_widgets() +
@@ -34,21 +41,35 @@ def load_widgets():
         
         
         
-        print(len(widgets))
+        
         for x in widgets:
-            print(f"Last widget: {x}")
-            if isinstance(x, (ctk.CTkRadioButton, ctk.CTkComboBox)):
-                x.grid_remove()
-            else:
+            if x.winfo_exists():
                 x.destroy()
         
         
         widgets.clear()
-        print(f"Widgets list after clearing: {widgets}")
+        
 
 # Example usage of the function
 load_widgets()
+def start_loop():
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_forever()
+    except Exception as e:
+        print(f"Event loop stopped: {e}")
+        loop.stop()
 
+
+threading.Thread(target=start_loop, daemon=True).start()
+async def run_task(coro):
+    # Schedule a coroutine on the event loop
+    task = asyncio.create_task(coro)
+    await task
+
+def run_coroutine(coro):
+    # Ensure this function is called from the main thread
+    asyncio.run_coroutine_threadsafe(run_task(coro), loop)
 def menu(app,s_height):
     global username,level,tagline,iconId,tier,rank,lp,winrate,port,api,path
     button_height = 80
@@ -56,7 +77,7 @@ def menu(app,s_height):
     BACKGROUND = "dimgray"
     image_w_size = 70
     image_h_size = 70
-    starting_position = 200
+    
     frame1 = ctk.CTkFrame(app,width=menu_width,height=2000,fg_color=BACKGROUND)
     frame1.place(x=0,y=0)
     for gird in range(20):
@@ -68,14 +89,27 @@ def menu(app,s_height):
     battle_image = ImageTk.PhotoImage(battle_resized_image)
     def battle_button_clicked():
         load_widgets()
-        match_history.draw_match_history(app,"easywins","EUNE")
+        if loader.thread_should_run==False:
+            loader.thread_should_run = True
+            loading_label = ctk.CTkLabel(app, text="Loading", font=('Montserrat', 20, 'bold'))
+            loading_label.place(relx=0.5, rely=0.9, anchor="center")
+            loader.thread_should_run = True
+            threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start()
+            
+            match_history.fetched = False
+            run_coroutine(match_history.draw_match_history(app,"easywins","EUNE",loading_label))
+        else:
+            tk.messagebox.showerror(title="Error", message="Please wait for the current process to finish")
+    def start_thread2():
+        tread2 = threading.Thread(target=battle_button_clicked).start()
+    
     battle_button = ctk.CTkButton(app,image=battle_image,text="",
                                        fg_color=BACKGROUND,
                                        bg_color=BACKGROUND,
                                        height=button_height,
                                        width=menu_width,
                                        hover_color="white",
-                                       command=battle_button_clicked,
+                                       command=lambda: start_thread2(),
                                        corner_radius=0
                                        )
     battle_button.grid(row=4,column=0,columnspan=4,sticky="w")
@@ -85,14 +119,24 @@ def menu(app,s_height):
     ingame_image = ImageTk.PhotoImage(ingame_resized_image)
     def ing_button_clicked():
         load_widgets()
-        ingame.live_game_draw(app)
+        if loader.thread_should_run==False:
+            loader.thread_should_run = True
+            loading_label = ctk.CTkLabel(app, text="Loading", font=('Montserrat', 20, 'bold'))
+            loading_label.place(relx=0.5, rely=0.9, anchor="center")
+            threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start() 
+            run_coroutine(ingame.live_game_draw(app))
+            
+        else:
+            tk.messagebox.showerror(title="Error", message="Please wait for the current process to finish")
+    def start_thread3():
+        tread3 = threading.Thread(target=ing_button_clicked).start()
     ingame_button = ctk.CTkButton(app,image=ingame_image,text="",
                                        fg_color=BACKGROUND,
                                        bg_color=BACKGROUND,
                                        height=button_height,
                                        width=menu_width,
                                        hover_color="white",
-                                        command=ing_button_clicked,
+                                        command=start_thread3,
                                        corner_radius=0
                                        )
     
@@ -200,7 +244,7 @@ def menu(app,s_height):
     def click(*args): 
         search_box.delete(0, 'end') 
     search_box = ctk.CTkEntry(app,width=menu_width-40,height=30)
-    search_box.insert(0, 'example#EUNE') 
+    search_box.insert(0, 'aparat4e#EUNE') 
     search_box.bind("<Button-1>", click) 
     search_box.grid(row=3,column=0,columnspan=3,sticky="n")
     #search button
@@ -210,15 +254,24 @@ def menu(app,s_height):
     def search_player():
         temp = search_box.get().split("#")
         load_widgets()
-        match_history.draw_match_history(app,temp[0],temp[1])
-
+        loading_label = ctk.CTkLabel(app, text="Loading", font=('Montserrat', 20, 'bold'))
+        loading_label.place(relx=0.5, rely=0.9, anchor="center")
+        loader.thread_should_run = True
+        threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start()
+        
+        
+        match_history.fetched = False
+        run_coroutine(match_history.draw_match_history(app,temp[0],temp[1],loading_label))
+        
+    def start_thread1():
+        th = threading.Thread(target=search_player).start()
     lense_button = ctk.CTkButton(app,image=lense_image,text="",
                                        fg_color=BACKGROUND,   
                                        bg_color=BACKGROUND,
                                        height=30,
                                        width=30,
                                        hover_color="white",
-                                       command=search_player,
+                                       command=lambda:start_thread1(),
                                        corner_radius=0
                                        )
     lense_button.grid(row=3,column=3,sticky="nw")
@@ -311,4 +364,6 @@ def get_width():
     return WIDTH
 def get_height():
     return HEIGHT
+
+
 mainUI()

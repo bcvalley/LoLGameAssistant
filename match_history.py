@@ -1,10 +1,12 @@
 import customtkinter as ctk
 import tkinter as tk
 import os,ast
+import loader,threading,asyncio
 from PIL import Image, ImageTk, ImageDraw, ImageFilter, ImageFont
 import backend
 from CTkScrollableDropdown import *
 from collections import Counter
+
 PATH = os.getcwd()
 BACKGROUND = "#242424"  # Background color
 app = None  # Main CTK
@@ -26,9 +28,11 @@ aaa = None
 fetched = False
 canvas_width=  0
 row,col,rowspan,colspan = 0,4,10,9
-def draw_match_history(appp,username,tagline):
-    global app,canvas_width, center, WIDTH, HEIGHT, font, widgets, y, image_refs, all_games, canvas, sortable_champions, aaa,fetched
+kill_this_label = None
+async def draw_match_history(appp,username,tagline,label_to_kill:ctk.CTkLabel):
+    global app,canvas_width, center, WIDTH, HEIGHT,kill_this_label, font, widgets, y, image_refs, all_games, canvas, sortable_champions, aaa,fetched
     app = appp
+    kill_this_label = label_to_kill
     try:
         canvas.destroy()
         all_games.clear()
@@ -41,13 +45,16 @@ def draw_match_history(appp,username,tagline):
     HEIGHT = app.winfo_screenheight()
     sortable_champions = ["FILTER BY CHAMPION"]
     # Create the backend instance and get the match history
-    
+
     if fetched ==False:
+        
         aaa = backend.Backend("europe", username, tagline, "RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417", count)
-        all_games = aaa.returnList()
+        all_games = await aaa.returnList()
+        for game in all_games:
+            print(f"------------------------------------{game}")
     # with open("matches.txt", "r") as f:
     #     all_games = ast.literal_eval(f.read()) FOR TESTING
-    
+        #['Khazix', 1514, 12, 2, 8, 173, [6701, 3142, 3047, 6694, 3814, 0, 3364], 420, 26969, 30374, True, 1723804692557]
    
     
         fetched = True
@@ -58,7 +65,7 @@ def draw_match_history(appp,username,tagline):
         canvas_width = WIDTH - x -offset_x
         #                          ^
         #                    4,3%  |
-        print(HEIGHT)
+        
         offset_y = (44.5/100)*HEIGHT
         
         canvas_height = HEIGHT - offset_y
@@ -75,7 +82,7 @@ def draw_match_history(appp,username,tagline):
         # Populate the canvas with rectangles and images
         y = 0  # Starting y position
         z = 330
-        refresh(all_games, canvas, aaa, sortable_champions)
+        await refresh(all_games, canvas, aaa, sortable_champions)
         getMostPlayedChamp(all_games)
         # Update the scroll region of the canvas
         canvas.update_idletasks()
@@ -86,7 +93,7 @@ def draw_match_history(appp,username,tagline):
         widgets.append(combo_box)
         widgets.append(refresh_button)
         refresh_button.configure(command=lambda: refresh_clicked(filter_combobox, sort_combobox,combo_box))
-
+    
 def refresh_clicked(filter_combobox, sort_combobox,champ_combobox):
     global all_games, canvas, aaa, sortable_champions
     if canvas is not None:
@@ -135,7 +142,7 @@ def check_grid(my_row):
         my_row =rowspan
         return my_row
     return my_row
-def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
+async def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
     global y, z, image_refs,WIDTH
     ## offset spacings
     #icon dimentions
@@ -157,7 +164,7 @@ def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
     canvas.delete("all")
     y = 0 
     for each_game in all_games:
-        print(each_game)
+        print("each game -> ",each_game)
         element4 = 330
         icon_ending = y + 50
         if each_game[-2] == True:
@@ -192,7 +199,7 @@ def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
                 canvas.create_image(element4, icon_ending, image=item_image)
                 image_refs.append(item_image)
                 element4 += mini_space
-        aaa.getQueues()
+        await aaa.getQueues()
         game_map, description = aaa.loadJsonQueues(each_game[7])
         canvas.create_text(element5, icon_ending-40, text=f"{game_map}", font=("Montserrat", 12, "bold"))
         canvas.create_text(element5, icon_ending+22, text=f"{description}", font=("Montserrat", 12, "bold"))
@@ -207,8 +214,8 @@ def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
     canvas.update_idletasks()
     # Adjust the canvas height dynamically
     canvas.config(scrollregion=(0, 0, canvas.winfo_width(), y))
-
-
+    loader.thread_should_run = False
+    
 def filter_algo(filtr, all_games):
     filtered_games = []
     if filtr == "WINS":

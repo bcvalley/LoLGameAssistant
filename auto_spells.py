@@ -89,7 +89,7 @@ def draw_label():
     global center,widgets
     
     draw_label = ctk.CTkLabel(app,text="Auto Spells",bg_color=BACKGROUND,font=font,anchor="center")
-    draw_label.grid(row=3,column=7,columnspan=4)
+    draw_label.place(relx=0.55, rely=0.2, anchor="center")
     widgets.append(draw_label)
 image_size = (90,90)
 gamemode = "Classic"
@@ -114,10 +114,10 @@ def draw_radiobutton():
     gamemode_var = ctk.StringVar(value="Classic")
 
     Radiobutton_classic = ctk.CTkRadioButton(app, text="Classic", value="Classic", variable=gamemode_var, command=lambda: set_gamemode("Classic"))
-    Radiobutton_classic.grid(row=2, column=8)
+    Radiobutton_classic.place(relx=0.50, rely=0.16, anchor="center")
     
     Radiobutton_aram = ctk.CTkRadioButton(app, text="ARAM", value="ARAM", variable=gamemode_var, command=lambda: set_gamemode("ARAM"))
-    Radiobutton_aram.grid(row=2, column=9)
+    Radiobutton_aram.place(relx=0.64, rely=0.16, anchor="center")
     widgets.append(Radiobutton_classic)
     widgets.append(Radiobutton_aram)
 import customtkinter as ctk
@@ -131,7 +131,7 @@ def draw_left_combobox():
 
     left_combo_box = ctk.CTkComboBox(app, width=200, height=40, values=values)
     left_combo_box.configure(command=lambda k: set_icon_left(k) or left_combo_box.set(k) or check_both_comboboxes(left_combo_box))
-    left_combo_box.grid(row=5, column=6,rowspan=1)
+    left_combo_box.place(relx=0.35, rely=0.32, anchor="center")
     if spell1 != "None":
         left_combo_box.set(spell1)
     else:
@@ -151,7 +151,7 @@ def draw_right_combobox():
 
     right_combo_box = ctk.CTkComboBox(app, width=200, height=40, values=values)
     right_combo_box.configure(command=lambda k: set_icon_right(k) or right_combo_box.set(k) or check_both_comboboxes(right_combo_box))
-    right_combo_box.grid(row=5, column=11,rowspan=1)
+    right_combo_box.place(relx=0.75, rely=0.32, anchor="center")
     if spell2 != "None":
         right_combo_box.set(spell2)
     else:
@@ -167,11 +167,11 @@ def draw_spell_one(name):
     spell_one_resized = loaded_spell_image.resize(image_size)
     spell_image = ImageTk.PhotoImage(spell_one_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")
-    spell.grid(row=5,column=8,rowspan=2,sticky="n")
+    spell.place(relx=0.5,rely=0.35,anchor="center")
     spell1_picked(name)
     icons_update_left.append(spell)
     hotkey_D = ctk.CTkLabel(app,text="D",bg_color=BACKGROUND,font=font)
-    hotkey_D.grid(row=6,column=8,sticky='n')
+    hotkey_D.place(relx=0.5,rely=0.42,anchor="center")
     widgets.append(hotkey_D)
 def draw_spell_two(name):
     global icons_update_right
@@ -179,11 +179,11 @@ def draw_spell_two(name):
     spell_two_resized = loaded_spell_image.resize(image_size)
     spell_image = ImageTk.PhotoImage(spell_two_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")
-    spell.grid(row=5,column=9,rowspan=2,sticky="n")
+    spell.place(relx=0.6,rely=0.35,anchor="center")
     spell2_picked(name)
     icons_update_right.append(spell)
     hotkey_F = ctk.CTkLabel(app,text="F",bg_color=BACKGROUND,font=font)
-    hotkey_F.grid(row=6,column=9,sticky='n')
+    hotkey_F.place(relx=0.6,rely=0.42,anchor="center")
     widgets.append(hotkey_F)
 status=False
 def draw_toggle():
@@ -203,10 +203,10 @@ def draw_toggle():
         check_both_comboboxes(left_combo_box)
         check_both_comboboxes(right_combo_box)
     toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white",command=do_my_job)
-    toggle_button.grid(row=7,column=8,columnspan=2)
+    toggle_button.place(relx=0.55,rely=0.5,anchor="center")
     widgets.append(toggle_button)
     status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
-    status_label.grid(row=6,column=8,rowspan=1,sticky="s")
+    status_label.place(relx=0.55,rely=0.55,anchor="center")
     widgets.append(status_label)
 
 def get_widgets():
