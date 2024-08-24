@@ -1,5 +1,5 @@
 import requests
-import warnings
+import warnings,aiohttp,ijson,asyncio
 
 api = ""
 port = 0
@@ -36,32 +36,42 @@ def getChampionsWithID():
     response = request.json()
     champion_dict = {champion["id"]: champion["key"] for champion in response["data"].values()}
     return champion_dict
-def getNameAndTag(puuid,port,api):
+async def getNameAndTag(puuid,port,api):
         
         url = f"https://127.0.0.1:{port}/lol-summoner/v2/summoners/puuid/{puuid}"
-        request = requests.get(url,auth=('riot',api),verify=False)
-        response = request.json()
-        return response["gameName"],response["tagLine"]
+        async with aiohttp.ClientSession(auth=aiohttp.BasicAuth('riot',api)) as session:
+            request = await session.get(url,ssl=False)
+
+        
+            response = await request.json()
+            return f"{response['gameName']}#{response['tagLine']}"
     
-def get_200_games(puuid, port, api):
+async def get_200_games(puuid, port, api):
     champ_ids = []
-    name,tag=getNameAndTag(puuid, port, api)
+    name_and_tag= await getNameAndTag(puuid, port, api)
+    name_and_tag = name_and_tag.split("#")
+    name = name_and_tag[0]
+    tag = name_and_tag[1]
     url = f'https://127.0.0.1:{port}/lol-match-history/v1/products/lol/{puuid}/matches?begIndex=0&endIndex=100'
-    request = requests.get(url=url, auth=('riot', api), verify=False)
-    response = request.json()
-    if name != "error":
-        for each_game in response["games"]["games"]:
-            if each_game["participants"][0]["championId"] >1000:
-                continue
-            champ_ids.append((each_game["participants"][0]["championId"],each_game["participants"][0]["stats"]["win"]))
+    async with aiohttp.ClientSession(auth=aiohttp.BasicAuth('riot',api)) as session:
+        async with session.get(url,ssl=False) as request:
+        
+            
+            async for prefix,event,value in ijson.parse_async(request.content):
+                
+                if prefix.endswith(".championId") and event == "number":
+                    champion_id = value
+                if prefix.endswith(".win") and event == "boolean":
+                    win = value
+                    if champion_id <= 1000:  # Filtering out invalid champion IDs
+                        champ_ids.append((champion_id, win))
 
         pair = extract_max_pair(best_champion(champ_ids))
         champ = id_to_champ(pair[0])
         
         winrate = pair[1][0]/pair[1][1]
         return champ,round(winrate*100),pair[1][1],name,tag
-    else:
-        return "error","error","error","error","error"
+   
     
 
     
@@ -82,26 +92,30 @@ def extract_max_pair(lst):
 
 champ_dictionary = getChampionsWithID()
 
-def start_func(puuids):
+async def start_func(puuids):
     data = []
     for puuid in puuids:
-        champ,wr,games,name,tag = get_200_games(puuid, port, api)
+        lst = await get_200_games(puuid, port, api)
+        champ = lst[0]
+        wr = lst[1]
+        games = lst[2]
+        name,tag = lst[3],lst[4]
         data.append((champ,wr,games,name,tag))
     return data
 
 
 
 
-def getNameAndTag(puuid,port,api):
+# def getNameAndTag(puuid,port,api):
         
-        url = f"https://127.0.0.1:{port}/lol-summoner/v2/summoners/puuid/{puuid}"
-        request = requests.get(url,auth=('riot',api),verify=False)
-        response = request.json()
-        if request.status_code == 200:
+#         url = f"https://127.0.0.1:{port}/lol-summoner/v2/summoners/puuid/{puuid}"
+#         request = requests.get(url,auth=('riot',api),verify=False)
+#         response = request.json()
+#         if request.status_code == 200:
 
-            return response["gameName"],response["tagLine"]
-        else:
-            return "error","error"
+#             return response["gameName"],response["tagLine"]
+#         else:
+#             return "error","error"
 # game_name,tag = getNameAndTag(puuids[3], port, api)
 # print(game_name,tag)
 # game_name,tag = getNameAndTag(puuids[4], port, api)
