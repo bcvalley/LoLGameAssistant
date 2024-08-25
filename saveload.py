@@ -102,9 +102,22 @@ def draw_save(app, statuses):
     else:
         game_dir_label.configure(text="Game directory not found")
 
-
-    
-
+    all_on_button = ctk.CTkButton(app, text="All ON ", command=lambda: all_on(), bg_color=BACKGROUND, fg_color="green", font=('Montserrat', 20, 'bold'),corner_radius=200)
+    all_off_button = ctk.CTkButton(app, text="All OFF", command=lambda: all_off(), bg_color=BACKGROUND, fg_color="red", font=('Montserrat', 20, 'bold'),corner_radius=200)
+    all_off_button.place(relx=0.3,rely=0.25,anchor="c")
+    all_on_button.place(relx=0.3,rely=0.2,anchor="c")
+    widgets.append(all_on_button)
+    widgets.append(all_off_button)
+def all_on():
+    aa.status = True
+    ap.status = True
+    ab.status = True
+    auto_spells.status = True
+def all_off():
+    aa.status = False
+    ap.status = False
+    ab.status = False
+    auto_spells.status = False
 def save_game_dir(game_dir):
     path = f"{PATH}\\saved_config\\game_dir.json"
     config = {"game_dir": game_dir}

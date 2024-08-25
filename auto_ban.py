@@ -122,13 +122,21 @@ def draw_toggle():
             status_label.configure(text="status: on",text_color="green")
             status=True
             app.after(4000,do)
-    
+    def loaded_switch():
+        global status
+        if status:
+            status_label.configure(text="status: on",text_color="green")
+        else:
+            status_label.configure(text="status: off",text_color="red")
+            
+            
             
     toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white",command=switch)
     toggle_button.place(relx=0.55,rely=0.3)
     widgets.append(toggle_button)
     status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
     status_label.place(relx=0.46,rely=0.37)
+    loaded_switch()
     widgets.append(status_label)
     
         
