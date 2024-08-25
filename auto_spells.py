@@ -197,6 +197,12 @@ def draw_toggle():
             status_label.configure(text="status: on",text_color="green")
             status=True
             app.after(4000,do)
+    def loaded_switch():
+        global status
+        if status:
+            status_label.configure(text="status: on",text_color="green")
+        else:
+            status_label.configure(text="status: off",text_color="red")
     # loads config spells 
     def do_my_job():
         switch()
@@ -207,6 +213,7 @@ def draw_toggle():
     widgets.append(toggle_button)
     status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
     status_label.place(relx=0.55,rely=0.55,anchor="center")
+    loaded_switch()
     widgets.append(status_label)
 
 def get_widgets():
