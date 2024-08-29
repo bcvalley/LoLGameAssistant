@@ -90,7 +90,7 @@ def draw_save(app, statuses):
         save_game_dir(directory)
     
     get_game_dir = ctk.CTkButton(app, text="Change Game Directory", command=open_folder, bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
-    get_game_dir.grid(row=2, column=3,columnspan=4,sticky='n')
+    get_game_dir.grid(row=2, column=3,columnspan=4,rowspan=1,sticky='n')
     widgets.append(get_game_dir)
     config_path = f"{PATH}\\saved_config\\game_dir.json"
     if os.path.exists(config_path):

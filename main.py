@@ -244,9 +244,9 @@ def menu(app,s_height):
     def click(*args): 
         search_box.delete(0, 'end') 
     search_box = ctk.CTkEntry(app,width=menu_width-40,height=30)
-    search_box.insert(0, 'aparat4e#EUNE') 
+    search_box.insert(0, 'example#EUNE') 
     search_box.bind("<Button-1>", click) 
-    search_box.grid(row=3,column=0,columnspan=3,sticky="n")
+    search_box.grid(row=3,column=0,columnspan=3,sticky="s",padx=5)
     #search button
     loaded_lense_image = Image.open(os.path.join(path,"icons\\lense.png"))
     lense_resized_image = loaded_lense_image.resize((20,20))
@@ -274,7 +274,7 @@ def menu(app,s_height):
                                        command=lambda:start_thread1(),
                                        corner_radius=0
                                        )
-    lense_button.grid(row=3,column=3,sticky="nw")
+    lense_button.grid(row=3,column=3,sticky="ws")
     #player level {level}
     
     player_level = ctk.CTkLabel(app,text=f"{level}",font=('Montserrat',20,'bold'),fg_color="purple")
@@ -282,10 +282,12 @@ def menu(app,s_height):
     player_level.tkraise()
     #Rank Label {tier} {rank}    
     rank_label = ctk.CTkLabel(app,text=f" {tier} {rank}",font=('Montserrat',15,'bold'),text_color="black",bg_color="yellow")
-    rank_label.grid(row=0,column=2)
+    # rank_label.grid(row=0,column=2)
+    rank_label.place(relx=0.1,rely=0)
     #LP label LP : {lp}      
     lp_label = ctk.CTkLabel(app,text=f" LP : {lp} ",font=('Montserrat',15,'bold'),text_color="black",bg_color="yellow")
-    lp_label.grid(row=1,column=2,sticky="n")
+    # lp_label.grid(row=1,column=2,sticky="w",columnspan=1)
+    lp_label.place(relx=0.1,rely=0.022)
     #Winrate label  WR:{winrate}%    
     winrate_label = ctk.CTkLabel(app,text=f"WR:{winrate}%",font=('Montserrat',15,'bold'))
     
@@ -293,7 +295,8 @@ def menu(app,s_height):
         winrate_label.configure(fg_color="green",bg_color="green")
     else:
         winrate_label.configure(fg_color="red",bg_color= "red")
-    winrate_label.grid(row=1,column=2,sticky="s")
+    #winrate_label.grid(row=1,column=2,columnspan=3)
+    winrate_label.place(relx=0.1,rely=0.044)
 
 def getProfileData(port,api):
     if port != 0 and api!=0:

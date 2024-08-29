@@ -74,7 +74,7 @@ async def live_game_draw(appp):
     all_data,data_recieved,game_info = await refresh()
     cv_width, cv_height = get_canvas_dimentions()
     canvas = ctk.CTkCanvas(app, width=cv_width, height=cv_height, bg=BACKGROUND, highlightthickness=0)
-    canvas.grid(row=5,column=3,columnspan=12,rowspan=9,sticky="nw",padx=40,pady=30)
+    canvas.grid(row=5,column=3,columnspan=12,rowspan=11,sticky="nw",padx=40,pady=30)
     loading_label = ctk.CTkLabel(app, text="Loading", font=('Montserrat', 20, 'bold'))
     widgets.append(canvas)
     # if is_in_session(port,api):
