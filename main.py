@@ -19,7 +19,7 @@ path = os.getcwd()
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
     
-print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
+# print(backend.InGame.getPUUID("easywins","EUNE","RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"))
     
 
 def load_widgets():
@@ -34,8 +34,7 @@ def load_widgets():
         match_history.get_widgets() +
         saveload.get_widgets()
     )
-    # was 2 in the original code
-                    ##|
+    
     if len(widgets) > 0:
         
         
@@ -97,7 +96,8 @@ def menu(app,s_height):
             threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start()
             
             match_history.fetched = False
-            run_coroutine(match_history.draw_match_history(app,"easywins","EUNE",loading_label))
+            
+            run_coroutine(match_history.draw_match_history(app,username,tagline,loading_label))
         else:
             tk.messagebox.showerror(title="Error", message="Please wait for the current process to finish")
     def start_thread2():
@@ -222,12 +222,13 @@ def menu(app,s_height):
     switch_monitor_button = ctk.CTkButton(app, text="Switch monitor",width=menu_width, command=draw_switch_monitor, bg_color="dimgray", fg_color="red", font=('Montserrat', 15, 'bold'))
     switch_monitor_button.grid(row=10, column=0,columnspan=4,sticky='nw')
     #profile icon downloadProfileIcon(iconId)
+    _image_size =int(7/100*WIDTH)
     img = Image.open(downloadProfileIcon(iconId)).convert("RGBA")
-    img=img.resize((80,80))
+    img=img.resize((_image_size,_image_size))
     background = Image.new("RGBA", img.size, (0,0,0,0))
     mask = Image.new("RGBA", img.size, 0)
     draw = ImageDraw.Draw(mask)
-    draw.ellipse((0,0,80,80), fill='white', outline=None)
+    draw.ellipse((0,0,_image_size,_image_size), fill='white', outline=None)
     new_img = Image.composite(img, background, mask)
     new_img.save("cropped.png")
     tk_image = ImageTk.PhotoImage(new_img)
@@ -243,10 +244,10 @@ def menu(app,s_height):
     #search box 
     def click(*args): 
         search_box.delete(0, 'end') 
-    search_box = ctk.CTkEntry(app,width=menu_width-40,height=30)
+    search_box = ctk.CTkEntry(app,width=menu_width-40,height=30,bg_color="dimgray")
     search_box.insert(0, 'example#EUNE') 
     search_box.bind("<Button-1>", click) 
-    search_box.grid(row=3,column=0,columnspan=3,sticky="s",padx=5)
+    search_box.grid(row=3,column=0,columnspan=3,sticky="s")
     #search button
     loaded_lense_image = Image.open(os.path.join(path,"icons\\lense.png"))
     lense_resized_image = loaded_lense_image.resize((20,20))
@@ -274,7 +275,7 @@ def menu(app,s_height):
                                        command=lambda:start_thread1(),
                                        corner_radius=0
                                        )
-    lense_button.grid(row=3,column=3,sticky="ws")
+    lense_button.grid(row=3,column=2,sticky="es",columnspan=2)
     #player level {level}
     
     player_level = ctk.CTkLabel(app,text=f"{level}",font=('Montserrat',20,'bold'),fg_color="purple")
@@ -287,16 +288,16 @@ def menu(app,s_height):
     #LP label LP : {lp}      
     lp_label = ctk.CTkLabel(app,text=f" LP : {lp} ",font=('Montserrat',15,'bold'),text_color="black",bg_color="yellow")
     # lp_label.grid(row=1,column=2,sticky="w",columnspan=1)
-    lp_label.place(relx=0.1,rely=0.022)
+    lp_label.place(relx=0.1,rely=0.032)
     #Winrate label  WR:{winrate}%    
     winrate_label = ctk.CTkLabel(app,text=f"WR:{winrate}%",font=('Montserrat',15,'bold'))
-    
-    if winrate >50:
-        winrate_label.configure(fg_color="green",bg_color="green")
-    else:
-        winrate_label.configure(fg_color="red",bg_color= "red")
+    if isinstance(winrate,int):
+        if winrate >50:
+            winrate_label.configure(fg_color="green",bg_color="green")
+        else:
+            winrate_label.configure(fg_color="red",bg_color= "red")
     #winrate_label.grid(row=1,column=2,columnspan=3)
-    winrate_label.place(relx=0.1,rely=0.044)
+    winrate_label.place(relx=0.1,rely=0.058)
 
 def getProfileData(port,api):
     if port != 0 and api!=0:
@@ -308,28 +309,59 @@ def getProfileData(port,api):
         iconId = response["profileIconId"]
         level = response["summonerLevel"]
         return username,tagline,iconId,level
+def getPlayerRegion():
+    url = f"https://127.0.0.1:{port}/lol-platform-config/v1/namespaces/LoginDataPacket"
+    request = requests.get(url,auth=('riot',api),verify=False)
+    response = request.json()
+    region = response.get("platformId")
+    
+    return region.lower()
+def playerRankAndWinrate(region,username,tagline,api):
+    host = ""
+    if region == "euw1" or region == "eun1":
+            host = "europe.api.riotgames.com"
+            
+    elif region == "na1":
+            host = "americas.api.riotgames.com"
+    else:
+        host = "asia.api.riotgames.com"        
+            
 
-def playerRankAndWinrate(username,tagline,api):
-    url = f"https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{username}/{tagline}?api_key={api}"
+    
+    
+    
+    url = f"https://{host}/riot/account/v1/accounts/by-riot-id/{username}/{tagline}?api_key={api}"
     request = requests.get(url=url)
     response = request.json()
+    
+        
     puuid = response["puuid"]
-    url2 = f"https://eun1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}?api_key={api}"
+    
+        
+        
+    url2 = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}?api_key={api}"
     request = requests.get(url=url2)
     response = request.json()
     summoner_id = response["id"]
-    url3 = f"https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/{summoner_id}?api_key={api}"
+    url3 = f"https://{region}.api.riotgames.com/lol/league/v4/entries/by-summoner/{summoner_id}?api_key={api}"
     request = requests.get(url=url3)
     response = request.json()
-   
-    tier = response[1]["tier"]
-    rank = response[1]["rank"]
-    lp = response[1]["leaguePoints"]
-    winrate =  int(response[1]["wins"] / (response[1]["wins"] + response[1]["losses"]) * 100)
-    return tier,rank,lp,winrate
+    try:
+        tier = response[1]["tier"]
+        rank = response[1]["rank"]
+        lp = response[1]["leaguePoints"]
+        winrate =  int(response[1]["wins"] / (response[1]["wins"] + response[1]["losses"]) * 100)
+        return tier,rank,lp,winrate,region,host
+    except:
+        return "N/A","N/A","N/A","N/A",region,host
 
-username,tagline,iconId,level = getProfileData(port,api)   
-tier,rank,lp,winrate = playerRankAndWinrate(username,tagline,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
+username,tagline,iconId,level = getProfileData(port,api)
+region = getPlayerRegion()  
+tier,rank,lp,winrate,region,host = playerRankAndWinrate(region,username,tagline,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
+ingame.host = host
+ingame.region = region
+match_history.host = host
+match_history.region = region
 
 def downloadProfileIcon(id:int):
     new_path = f"{path}\\profile_icons\\{id}.png"
@@ -341,7 +373,7 @@ def downloadProfileIcon(id:int):
         img_data = requests.get(url)
         with open(new_path,"wb") as handler:
             handler.write(img_data.content)
-    getProfileIconPath(id)
+        return getProfileIconPath(id)
 def getProfileIconPath(id):
     return f"profile_icons/{id}.png"
 
@@ -351,14 +383,15 @@ def mainUI():
     ctk.set_default_color_theme("blue")  
 
     app = ctk.CTk()  
-    
+    app.title("FF15")
+    app.iconbitmap(f"{path}\\icons\\ff15.ico")
     WIDTH = app.winfo_screenwidth()
     
     
     HEIGHT = app.winfo_screenheight()
        
     app._state_before_windows_set_titlebar_color = "zoomed"
-    app.attributes("-alpha",0.95)
+    
     
     menu(app,HEIGHT)
     

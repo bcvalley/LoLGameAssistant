@@ -1,12 +1,15 @@
 import customtkinter as ctk
 import tkinter as tk
 import os,ast
-import loader,threading,asyncio
+import loader,threading,asyncio,ctypes
 from PIL import Image, ImageTk, ImageDraw, ImageFilter, ImageFont
 import backend
 from CTkScrollableDropdown import *
 from collections import Counter
-
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+except Exception as e:
+    print("Could not set DPI awareness:", e)
 PATH = os.getcwd()
 BACKGROUND = "#242424"  # Background color
 app = None  # Main CTK
@@ -29,6 +32,8 @@ fetched = False
 canvas_width=  0
 row,col,rowspan,colspan = 0,4,10,9
 kill_this_label = None
+host= ""
+region= ""
 async def draw_match_history(appp,username,tagline,label_to_kill:ctk.CTkLabel):
     global app,canvas_width, center, WIDTH, HEIGHT,kill_this_label, font, widgets, y, image_refs, all_games, canvas, sortable_champions, aaa,fetched
     app = appp
@@ -43,15 +48,15 @@ async def draw_match_history(appp,username,tagline,label_to_kill:ctk.CTkLabel):
     except:AttributeError
     WIDTH = app.winfo_screenwidth()
     HEIGHT = app.winfo_screenheight()
+    
     sortable_champions = ["FILTER BY CHAMPION"]
     # Create the backend instance and get the match history
 
     if fetched ==False:
         
-        aaa = backend.Backend("europe", username, tagline, "RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417", count)
+        aaa = backend.Backend(region, host, username, tagline, "RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417", count)
         all_games = await aaa.returnList()
-        for game in all_games:
-            print(f"------------------------------------{game}")
+        
     # with open("matches.txt", "r") as f:
     #     all_games = ast.literal_eval(f.read()) FOR TESTING
         #['Khazix', 1514, 12, 2, 8, 173, [6701, 3142, 3047, 6694, 3814, 0, 3364], 420, 26969, 30374, True, 1723804692557]
@@ -65,6 +70,7 @@ async def draw_match_history(appp,username,tagline,label_to_kill:ctk.CTkLabel):
         canvas_width = WIDTH - x -offset_x
         #                          ^
         #                    4,3%  |
+        
         
         offset_y = (44.5/100)*HEIGHT
         
@@ -147,30 +153,31 @@ async def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
     ## offset spacings
     #icon dimentions
     x1,x2 = int((7.81/100)*WIDTH),int((7.81/100)*WIDTH)
-    element0 = (4.68/100)*WIDTH # image 4.69% 60
+    element0 = (4/100)*WIDTH # image 4.69% 60
     
     element1 = (13.28/100)*WIDTH # kda and duration 13.28% 170
     element3 = (18.75/100)*WIDTH # cs 18.75% 240
-    element4 = (23.78/100)*WIDTH # items 25.78% 330
+    element4 = (25/100)*WIDTH # items 25.78% 330
     mini_space = (3.13/100)*WIDTH # spacing between items 3.13% 40
     element5 = (51.23/100)*WIDTH # mode and map 52.23% 670
     element6 = (62.41/100)*WIDTH # damage and taken 66.41% 850
     element7 = (74.86/100)*WIDTH # win and date 80.86% 1035
-    distance = [element1-element0,element3-element1,element4-element3,element5-element4,element6-element5,element7-element6]
+   
     
     
     if canvas is None:
         return
     canvas.delete("all")
     y = 0 
+    
     for each_game in all_games:
-        print("each game -> ",each_game)
-        element4 = 330
-        icon_ending = y + 50
+        
+        items_start = element4
+        icon_ending = y +(x1/2)
         if each_game[-2] == True:
-            canvas.create_rectangle(10, y, canvas_width, y + 100, fill="#6C8EBF")
+            canvas.create_rectangle(10, y, canvas_width, y + x1, fill="#6C8EBF")
         else:
-            canvas.create_rectangle(10, y, canvas_width, y + 100, fill="#db5e56")
+            canvas.create_rectangle(10, y, canvas_width, y + x1, fill="#db5e56")
         aaa.getIcon(each_game[0])
         if each_game[0] not in sortable_champions:
             sortable_champions.append(each_game[0])
@@ -188,29 +195,32 @@ async def refresh(all_games, canvas : tk.Canvas, aaa, sortable_champions):
         
         canvas.create_text(element3, icon_ending+20, text=f"CS:{each_game[5]}", font=("Montserrat", 12, "bold"))
         for each_item in each_game[6]:
-            image_size = (30, 30)
+            mini_image_size = (x1//3, x1//3)
+            image_size = (mini_image_size)
+            empty_item_size = x1//3
             if each_item == 0:
-                canvas.create_rectangle(element4-15, icon_ending-15, element4+15, icon_ending+15, fill="grey")
-                element4 += mini_space
+                canvas.create_rectangle(items_start-((x1/3)/2),icon_ending-((x1/3)/2),items_start+((x1/3)/2),icon_ending+((x1/3)/2), fill="grey")
+                items_start += mini_space
             else:
+                
                 loaded_item_image = Image.open(f"{PATH}\\items\\{each_item}.png")
                 item_resized = loaded_item_image.resize(image_size)
                 item_image = ImageTk.PhotoImage(item_resized)
-                canvas.create_image(element4, icon_ending, image=item_image)
+                canvas.create_image(items_start, icon_ending, image=item_image)
                 image_refs.append(item_image)
-                element4 += mini_space
+                items_start += mini_space
         await aaa.getQueues()
         game_map, description = aaa.loadJsonQueues(each_game[7])
         canvas.create_text(element5, icon_ending-40, text=f"{game_map}", font=("Montserrat", 12, "bold"))
         canvas.create_text(element5, icon_ending+22, text=f"{description}", font=("Montserrat", 12, "bold"))
-        canvas.create_text(element6,icon_ending-10,text=f"DMG Dealt:{each_game[8]}",font=("Montserrat", 12, "bold"))
-        canvas.create_text(element6,icon_ending+10,text=f"DMG Taken:{each_game[9]}",font=("Montserrat", 12, "bold"))
+        canvas.create_text(element6,icon_ending-mini_space,text=f"DMG Dealt:{each_game[8]}",font=("Montserrat", 12, "bold"))
+        canvas.create_text(element6,icon_ending+mini_space,text=f"DMG Taken:{each_game[9]}",font=("Montserrat", 12, "bold"))
         if each_game[10] == True:
             canvas.create_text(element7, icon_ending-20, text=f"WIN", font=font)
         else:
             canvas.create_text(element7, icon_ending-20, text="LOSS", font=font)
         canvas.create_text(element7, icon_ending+20, text=f"{aaa.timestamp_to_days_ago(each_game[11])} days ago", font=("Montserrat", 15, "bold"))
-        y += 90  # Increment y position for the next rectangle
+        y += x1  # Increment y position for the next rectangle
     canvas.update_idletasks()
     # Adjust the canvas height dynamically
     canvas.config(scrollregion=(0, 0, canvas.winfo_width(), y))

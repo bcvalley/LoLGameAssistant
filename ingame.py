@@ -19,6 +19,8 @@ checking_for_match = False
 prof = backend.Profile()
 loading_label = None
 canvas = None
+host = ""
+region = ""
 import game_dir
 def get_config_dir():
     path = f"{PATH}\\saved_config\\game_dir.json"
@@ -74,17 +76,18 @@ async def live_game_draw(appp):
     all_data,data_recieved,game_info = await refresh()
     cv_width, cv_height = get_canvas_dimentions()
     canvas = ctk.CTkCanvas(app, width=cv_width, height=cv_height, bg=BACKGROUND, highlightthickness=0)
-    canvas.grid(row=5,column=3,columnspan=12,rowspan=11,sticky="nw",padx=40,pady=30)
+    canvas.grid(row=5,column=4,columnspan=11,rowspan=11)
     loading_label = ctk.CTkLabel(app, text="Loading", font=('Montserrat', 20, 'bold'))
     widgets.append(canvas)
-    # if is_in_session(port,api):
-    #     loader.thread_should_run = True
-    #     loading_label.place(relx=0.5, rely=0.9, anchor="center")
-    #     ap = threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start()
-    #     await draw_champ_select(canvas)
+    if is_in_session(port,api):
+        print("in session")
+        loader.thread_should_run = True
+        loading_label.place(relx=0.5, rely=0.9, anchor="center")
+        ap = threading.Thread(target=loader.loader_animation,daemon=True,args=(app,loading_label)).start()
+        await draw_champ_select(canvas)
     
-    #el
-    if True:#data_recieved == False :
+    
+    elif data_recieved == False :
         req_label = ctk.CTkLabel(app,text="You are neither in a game nor in a champ select",text_color="red",font=('Montserrat',30,'bold'),anchor="center")
         req_label.place(relx=0.6, rely=0.2, anchor="center")
         image_size = (60,60)
@@ -110,15 +113,15 @@ async def live_game_draw(appp):
     
     
 async def live_game():
-    global canvas
-    draw_map()
+    # global canvas
+    #draw_map()
     draw_live_label()
     draw_gamemap()
     draw_ranked()
     draw_red_point()
     draw_both_teams(canvas)
     loader.thread_should_run = False
-    print(f"the state is {loader.thread_should_run}")
+    
     
 def draw_map():
     global app,game_info
@@ -147,21 +150,22 @@ def draw_live_label():
     widgets.append(live_label)
 
 def draw_red_point():
-
+    size = int(3/100*WIDTH)
+    print(size)
 
 
     open_red_point = Image.open(f"{PATH}\\icons\\redpoint.png")
-    red_point_resized_image = open_red_point.resize((20,20))
+    red_point_resized_image = open_red_point.resize((size,size))
     red_image = ImageTk.PhotoImage(red_point_resized_image)
     red_point_image = ctk.CTkLabel(app,image=red_image,text="",bg_color="#242424")
     widgets.append(red_point_image)
     def blink(image):
-        image.grid(row=4,column=3,sticky="nw",padx=40)
+        image.grid(row=2,column=3,rowspan=2,columnspan=2,sticky="nw",padx=50,pady=5)
         app.after(1000,hide,image)
     def hide(image):
         if image.winfo_exists():
-            print("exists")
-       
+            image.grid_forget()
+            app.after(1000,blink,image)
             
     blink(red_point_image)
 
@@ -463,10 +467,10 @@ def is_in_session(port,api):
         return False
 def get_visible_puuids(port,api):
     url = f"https://127.0.0.1:{port}/lol-champ-select/v1/session"
-    #request = requests.get(url,auth=('riot',api),verify=False)
-    #data = request.json()
-    with open("session.json","r") as f:
-        data = json.load(f)
+    request = requests.get(url,auth=('riot',api),verify=False)
+    data = request.json()
+    # with open("session.json","r") as f:
+    #     data = json.load(f)
     
     teamId =0
     
@@ -474,6 +478,7 @@ def get_visible_puuids(port,api):
     for part in data["myTeam"]:
         if part["nameVisibilityType"] == "UNHIDDEN" or part["nameVisibilityType"] == "VISIBLE":
             puuids.append(part["puuid"])
+            print("puuiddd",part["puuid"])
             teamId = part["team"]
     return puuids,teamId
 
@@ -600,9 +605,9 @@ async def refresh():
     global port,api
     game_name , game_tag = getProfileData(port,api)
     
-    my_puuid  = backend.InGame.getPUUID(game_name,game_tag,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
+    my_puuid  = backend.InGame.getPUUID(host,game_name,game_tag,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
     
-    all_data,data_recieved,game_info = await backend.InGame.getCurrentMatchData(my_puuid,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
+    all_data,data_recieved,game_info = await backend.InGame.getCurrentMatchData(region,my_puuid,"RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417")
     
     return all_data,data_recieved,game_info
     
@@ -615,6 +620,7 @@ def getProfileData(port,api):
         tagline = response["tagLine"]
         return username,tagline
 def id_to_name(id):
+
     global dictionary
     for key,value in dictionary.items():
         if int(value) == id:

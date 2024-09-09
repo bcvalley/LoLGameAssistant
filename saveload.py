@@ -35,8 +35,8 @@ def draw_save(app, statuses):
     canvas = ctk.CTkCanvas(app, width=2000, height=3000, bg=BACKGROUND, highlightthickness=0)
     application = app
     canvas.grid(row=0, column=4,columnspan=14,rowspan=2000)
-    canvas.create_rectangle(center - 335, 50, center + 100, 350, fill="dimgray")
-    canvas.create_rectangle(center - 335, 370, center + 100, 670, fill="dimgray")
+    
+    
     canvas.create_text(center - 320, 80, text="Save Current Configuration", fill="white", font=("Montserrat", 20, "bold"), anchor="w")
     canvas.create_text(center - 300, 150, text="Pick", fill="white", font=("Montserrat", 15, "bold"), anchor="w")
     
@@ -64,8 +64,8 @@ def draw_save(app, statuses):
     else:
         canvas.create_text(center, 220, text="OFF", fill="red", font=("Montserrat", 18, "bold"), anchor="w")
     
-    save_button = ctk.CTkButton(app, text="Save", command=lambda: save(statuses), bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
-    save_button.grid(row=5, column=8)
+    save_button = ctk.CTkButton(app, text="Save", command=lambda: save(statuses), bg_color="#242424", fg_color="black", font=('Montserrat', 15, 'bold'))
+    save_button.grid(row=7, column=8)
     save_button.tkraise()
     widgets.append(save_button)
     canvas.create_text(center - 320, 390, text="Load Configuration", fill="white", font=("Montserrat", 20, "bold"), anchor="w")
@@ -74,14 +74,14 @@ def draw_save(app, statuses):
     canvas.create_text(center - 100, 460, text="Spells", fill="white", font=("Montserrat", 15, "bold"), anchor="w")
     canvas.create_text(center, 460, text="Accept", fill="white", font=("Montserrat", 15, "bold"), anchor="w")
     
-    load_button = ctk.CTkButton(app, text="Load", command=lambda: load(), bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
-    load_button.grid(row=9, column=8)
+    load_button = ctk.CTkButton(app, text="Load", command=lambda: load(), bg_color="#242424", fg_color="black", font=('Montserrat', 15, 'bold'))
+    load_button.grid(row=7, column=9)
     widgets.append(load_button)
     widgets.append(canvas)
 
-    canvas.create_rectangle(5,50,300,130,fill="dimgray")
-    game_dir_label = ctk.CTkLabel(app,font=('Montserrat', 16, 'bold'),bg_color="dimgray")
-    game_dir_label.grid(row=1,column=2,columnspan=4,sticky="e")
+    
+    game_dir_label = ctk.CTkLabel(app,font=('Montserrat', 16, 'bold'),bg_color="#242424")
+    game_dir_label.grid(row=1,column=4,columnspan=4,sticky="e")
     #game_dir_label.tkraise()
     widgets.append(game_dir_label)
     def open_folder():
@@ -89,8 +89,8 @@ def draw_save(app, statuses):
         game_dir_label.configure(text=directory)
         save_game_dir(directory)
     
-    get_game_dir = ctk.CTkButton(app, text="Change Game Directory", command=open_folder, bg_color="dimgray", fg_color="black", font=('Montserrat', 15, 'bold'))
-    get_game_dir.grid(row=2, column=3,columnspan=4,rowspan=1,sticky='n')
+    get_game_dir = ctk.CTkButton(app, text="Change Game Directory", command=open_folder, bg_color="#242424", fg_color="black", font=('Montserrat', 15, 'bold'))
+    get_game_dir.grid(row=2, column=4,columnspan=4,rowspan=1,sticky='n')
     widgets.append(get_game_dir)
     config_path = f"{PATH}\\saved_config\\game_dir.json"
     if os.path.exists(config_path):
@@ -104,15 +104,30 @@ def draw_save(app, statuses):
 
     all_on_button = ctk.CTkButton(app, text="All ON ", command=lambda: all_on(), bg_color=BACKGROUND, fg_color="green", font=('Montserrat', 20, 'bold'),corner_radius=200)
     all_off_button = ctk.CTkButton(app, text="All OFF", command=lambda: all_off(), bg_color=BACKGROUND, fg_color="red", font=('Montserrat', 20, 'bold'),corner_radius=200)
-    all_off_button.place(relx=0.3,rely=0.25,anchor="c")
-    all_on_button.place(relx=0.3,rely=0.2,anchor="c")
+    all_off_button.grid(row=3, column=4,columnspan=2)
+    all_on_button.grid(row=4, column=4,columnspan=2)
     widgets.append(all_on_button)
     widgets.append(all_off_button)
 def all_on():
+    
     aa.status = True
+    aa.draw_accpet(application)
+    clear_generated_widgets()
+    aa.do()
+    
     ap.status = True
+    ap.draw_auto_pick(application)
+    clear_generated_widgets()
+    ap.do()
     ab.status = True
+    ab.draw_auto_ban(application)
+    clear_generated_widgets()
+    ab.do()
     auto_spells.status = True
+    auto_spells.draw_spells(application)
+    clear_generated_widgets()
+    auto_spells.do()
+    
 def all_off():
     aa.status = False
     ap.status = False
@@ -229,3 +244,10 @@ def save_to_json(status):
 
 def get_widgets():
     return widgets
+
+def clear_generated_widgets():
+    widgets = aa.get_widgets() + ap.get_widgets() + ab.get_widgets() + auto_spells.get_widgets()
+    for x in widgets:
+        if x.winfo_exists():
+            x.destroy()
+    widgets.clear()

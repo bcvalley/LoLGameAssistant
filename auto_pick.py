@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import numpy as np
+
 from PIL import Image ,ImageTk, ImageDraw
 import backend,json,os
 from CTkScrollableDropdown import *
@@ -57,11 +57,13 @@ def draw_label():
 
     widgets.append(draw_label)
 def draw_champion_icon(icon):
+
     global center,champ_picked
     champ_picked = icon
-    image_size = (110,110)
+    image_size = int((7/100)*WIDTH)
+    
     loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon}.png")
-    pick_champ_resized = loaded_champion_image.resize(image_size)
+    pick_champ_resized = loaded_champion_image.resize((image_size,image_size))
     pick_champ_image = ImageTk.PhotoImage(pick_champ_resized)
     pick_champ = ctk.CTkLabel(app,image=pick_champ_image,text="")
     pick_champ.place(relx=0.45,rely=0.25)
@@ -83,6 +85,7 @@ def draw_combobox():
             draw_champion_icon(loaded_champion_from_config)
             combobox.set(loaded_champion_from_config)
             set_name_of_champion(loaded_champion_from_config)
+            
     CTkScrollableDropdown(combo_box,values=values,command=lambda k: do_my_job(combo_box,k),autocomplete=True,button_height=30)
     combo_box.place(relx=0.55,rely=0.25)
     do_my_job(combo_box,loaded_champion_from_config)
