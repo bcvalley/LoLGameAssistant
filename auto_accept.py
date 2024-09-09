@@ -50,16 +50,16 @@ def draw_toggle():
         toggle_button.place(relx=0.55, rely=0.4, anchor="center")
         widgets.append(toggle_button)
         status_label = ctk.CTkLabel(app,text="status: on",text_color="green",bg_color=BACKGROUND,font=("Monsserat",16))
-        status_label.place(relx=0.55, rely=0.44, anchor="center")
+        status_label.place(relx=0.55, rely=0.47, anchor="center")
         toggle_button.configure(command=lambda: switch(status_label))
         
         widgets.append(status_label)
     elif status ==False:
         toggle_button = ctk.CTkButton(app,width=200,height=50,fg_color="#99ff33",text_color="black",text="ON/OFF",font=font,hover_color="white")
-        toggle_button.grid(row=5,column=11,columnspan=5,sticky='we')
+        toggle_button.place(relx=0.55, rely=0.4, anchor="center")
         widgets.append(toggle_button)
         status_label = ctk.CTkLabel(app,text="status: off",text_color="red",bg_color=BACKGROUND,font=("Monsserat",16))
-        status_label.grid(row=5,column=11,rowspan=2)
+        status_label.place(relx=0.55, rely=0.47, anchor="center")
         toggle_button.configure(command=lambda: switch(status_label))
         
         widgets.append(status_label)

@@ -6,6 +6,7 @@ if not os.path.exists(f"{current_path}\\saved_config\\game_dir.json"):
     path_for_lol = None
     ctk.set_appearance_mode("Dark")
     app = ctk.CTk()
+    app.title="FF15"
     width = app.winfo_screenwidth()
     height = app.winfo_screenheight()
     app_x = 300

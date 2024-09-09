@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import numpy as np
+
 from PIL import Image ,ImageTk, ImageDraw
 import backend,json,os,game_dir
 from CTkScrollableDropdown import *
@@ -67,13 +67,15 @@ def set_name_of_champion(name):
 def do():
     if status == True:
         try:
-            pickable_champs = ban.getBannableChamps(port,api)
+            
+            pickable_champs = ban.getBannableChamps(port,api) 
             cellId=ban.getActorCellId(port,api)
             id = name_to_id(name_of_champion)
             ban.ban_event(id,cellId,pickable_champs,port,api)
             app.after(4000,do)
-        except (KeyError) as e:
-            pass
+        except Exception :
+            app.after(4000,do)
+           
 def draw_label():
     global center
     
@@ -82,9 +84,9 @@ def draw_label():
     widgets.append(draw_label)
 def draw_champion_icon(icon):
     global center
-    image_size = (110,110)
+    image_size = int((7/100)*WIDTH)
     loaded_champion_image = Image.open(f"{PATH}\\champion_icons\\{icon}.png")
-    ban_champ_resized = loaded_champion_image.resize(image_size)
+    ban_champ_resized = loaded_champion_image.resize((image_size,image_size))
     ban_champ_image = ImageTk.PhotoImage(ban_champ_resized)
     ban_champ = ctk.CTkLabel(app,image=ban_champ_image,text="")
     ban_champ.place(relx=0.45,rely=0.25)
@@ -105,6 +107,7 @@ def draw_combobox():
             draw_champion_icon(loaded_ban_champion_from_config)
             combobox.set(loaded_ban_champion_from_config)
             set_name_of_champion(loaded_ban_champion_from_config)
+            
     CTkScrollableDropdown(combo_box,values=values,command=lambda k: do_my_job(combo_box,k),autocomplete=True,button_height=30)
     combo_box.place(relx=0.55,rely=0.25)
     do_my_job(combo_box,loaded_ban_champion_from_config)
@@ -148,6 +151,8 @@ def get_widgets():
 
 def ban_champion_picked(champ):
     saveload.ban_champion = champ
+
+
 
 
 

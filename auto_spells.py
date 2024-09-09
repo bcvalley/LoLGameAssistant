@@ -91,7 +91,7 @@ def draw_label():
     draw_label = ctk.CTkLabel(app,text="Auto Spells",bg_color=BACKGROUND,font=font,anchor="center")
     draw_label.place(relx=0.55, rely=0.2, anchor="center")
     widgets.append(draw_label)
-image_size = (90,90)
+
 gamemode = "Classic"
 
 def set_gamemode(value):
@@ -162,28 +162,30 @@ def draw_right_combobox():
     return values
 
 def draw_spell_one(name):
+    image_size = int(7/100*WIDTH)
     global icons_update_left
     loaded_spell_image = Image.open(f"{PATH}\\spell_icons\\Summoner{name}.png")
-    spell_one_resized = loaded_spell_image.resize(image_size)
+    spell_one_resized = loaded_spell_image.resize((image_size,image_size))
     spell_image = ImageTk.PhotoImage(spell_one_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")
     spell.place(relx=0.5,rely=0.35,anchor="center")
     spell1_picked(name)
     icons_update_left.append(spell)
     hotkey_D = ctk.CTkLabel(app,text="D",bg_color=BACKGROUND,font=font)
-    hotkey_D.place(relx=0.5,rely=0.42,anchor="center")
+    hotkey_D.place(relx=0.5,rely=0.44,anchor="center")
     widgets.append(hotkey_D)
 def draw_spell_two(name):
     global icons_update_right
+    image_size = int(7/100*WIDTH)
     loaded_spell_image = Image.open(f"{PATH}\\spell_icons\\Summoner{name}.png")
-    spell_two_resized = loaded_spell_image.resize(image_size)
+    spell_two_resized = loaded_spell_image.resize((image_size,image_size))
     spell_image = ImageTk.PhotoImage(spell_two_resized)
     spell = ctk.CTkLabel(app,image=spell_image,text="")
     spell.place(relx=0.6,rely=0.35,anchor="center")
     spell2_picked(name)
     icons_update_right.append(spell)
     hotkey_F = ctk.CTkLabel(app,text="F",bg_color=BACKGROUND,font=font)
-    hotkey_F.place(relx=0.6,rely=0.42,anchor="center")
+    hotkey_F.place(relx=0.6,rely=0.44,anchor="center")
     widgets.append(hotkey_F)
 status=False
 def draw_toggle():
@@ -264,7 +266,11 @@ def check_both_comboboxes(cb):
 
 def do():
     global status,api,port,combo_boxes
-    if status:
+    if spell1 != "None" and spell2 != "None" and status:
+        print("spells in hereee")
+        backend.AutoSpells.spells_event(spell1,spell2,port,api)
+        app.after(4000,do)
+    elif status:
         
         backend.AutoSpells.spells_event(combo_boxes[0].get(),combo_boxes[1].get(),port,api)
         app.after(4000,do)
@@ -275,3 +281,5 @@ def spell1_picked(spell):
 
 def spell2_picked(spell):
     saveload.spell2 = spell
+
+

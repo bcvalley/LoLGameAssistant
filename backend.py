@@ -12,12 +12,14 @@ class Backend:
     __tasks = []
     __match_information = []
     match_results = []
-    def __init__(self,region,game_name,game_tag,api,count) -> None:
+    def __init__(self,region,host,game_name,game_tag,api,count) -> None:
         self.region = region
+        self.host = host
         self.game_name = game_name
         self.game_tag = game_tag
         self.api = api
         self.count = count
+        
         
     async def returnList(self):
         # WORKING ####################### #############################
@@ -30,18 +32,18 @@ class Backend:
         # return self.__match_information  ## all games in a list 
         ###############################################################################
                                     #testing
-        await self.getPUUID()
-        await self.getMatchIds(self.region,self.api,self.__my_puuid,self.count)
-        return await self.create_tasks(self.region,self.__all_matches,self.api)
+        await self.getPUUID(host=self.host)
+        await self.getMatchIds(self.host,self.api,self.__my_puuid,self.count)
+        return await self.create_tasks(self.host,self.__all_matches,self.api)
         
 
-    async def create_tasks(self, region, all_matches, api):
+    async def create_tasks(self, host, all_matches, api):
         self.__tasks = []
         temp_list = []
         
         async with aiohttp.ClientSession() as session:
             for matchId in all_matches:
-                url = f"https://{region}.api.riotgames.com/lol/match/v5/matches/{matchId}?api_key={api}"
+                url = f"https://{host}/lol/match/v5/matches/{matchId}?api_key={api}"
                 task = asyncio.create_task(session.get(url, ssl=False))
                 self.__tasks.append(task)
 
@@ -62,7 +64,7 @@ class Backend:
                     
                     # Format and store the data
                     formatted = self.format_my_data()
-                    print(formatted)
+                    
                     temp_list.append(formatted)
                     
                 except Exception as e:
@@ -78,13 +80,14 @@ class Backend:
 
 
 
-    async def getPUUID(self):
+    async def getPUUID(self,host):
         
-        url = f"https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{self.game_name}/{self.game_tag}?api_key={self.api}"
+        url = f"https://{host}/riot/account/v1/accounts/by-riot-id/{self.game_name}/{self.game_tag}?api_key={self.api}"
         async with aiohttp.ClientSession() as session:
             request = await asyncio.create_task(session.get(url,ssl=False))
             
             response = await request.json()
+            
             self.__my_puuid = response.get("puuid")
     
 
@@ -99,16 +102,16 @@ class Backend:
 
 
 
-    async def getMatchIds(self,region,api,puuid,count):
-        url = f"https://{region}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?start=0&count={count}&api_key={api}"
+    async def getMatchIds(self,host,api,puuid,count):
+        url = f"https://{host}/lol/match/v5/matches/by-puuid/{puuid}/ids?start=0&count={count}&api_key={api}"
         async with aiohttp.ClientSession() as session:
             request = await asyncio.create_task(session.get(url,ssl=False))
 
             self.__all_matches = await request.json()
-   
-    async def getMatchData(self,region,matchId,api):
             
-        url = f"https://{region}.api.riotgames.com/lol/match/v5/matches/{matchId}?api_key={api}"    
+    async def getMatchData(self,host,matchId,api):
+            
+        url = f"https://{host}/lol/match/v5/matches/{matchId}?api_key={api}"    
         async with aiohttp.ClientSession() as session:
             request = await asyncio.create_task(session.get(url,ssl=False))
             game_data= await request.json()
@@ -119,7 +122,7 @@ class Backend:
             self.game_data = game_data
     
     def format_my_data(self):
-        print("----------------------->",self.my_data)
+       
         game_duration = self.game_data["info"]["gameDuration"]
         date = self.game_data["info"]["gameEndTimestamp"]
         queueId = self.game_data["info"]["queueId"]
@@ -278,7 +281,7 @@ class AutoPick:
                     break
 
             if action_id is None:
-                print("No valid action found for picking.")
+                print("No valid action found for PICKING.")
                 return
 
             put_json = {
@@ -346,6 +349,7 @@ class AutoBan:
         phase_request = requests.get(url=url_phase, auth=('riot', auth), verify=False)
         phase_request.raise_for_status()
         print("ban req sent!")
+        print("ssssssssssssssssssss")
         phase_data = phase_request.json()
         phase = phase_data["timer"]["phase"]
         if phase == "BAN_PICK":
@@ -373,7 +377,7 @@ class AutoBan:
                     break
 
             if action_id is None:
-                print("No valid action found for picking.")
+                print("No valid action found for BANNING.")
                 return
 
             put_json = {
@@ -425,7 +429,8 @@ class AutoSpells:
         "wardSkinId": 0
         }
         request = requests.patch(url=url,json=patch_json,auth=('riot',auth),verify=False)
-
+        
+        
 
 
     def download_spells():
@@ -451,127 +456,122 @@ class AutoSpells:
     
 
 class InGame:
-    def getPUUID(game_name,game_tag,api):
+    def getPUUID(host,game_name,game_tag,api):
         
 
-        url = f"https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{game_name}/{game_tag}?api_key={api}"
+        url = f"https://{host}/riot/account/v1/accounts/by-riot-id/{game_name}/{game_tag}?api_key={api}"
         request = requests.get(url=url)
         response = request.json()
         my_puuid = response.get("puuid")
+        print("Current PUUID: " + my_puuid)
         return my_puuid
         
-    async def getCurrentMatchData(puuiddd,auth):
-        
-        url = f"https://eun1.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{puuiddd}?api_key=RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"
+    async def getCurrentMatchData(region,puuiddd, auth):
+        url = f"https://{region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{puuiddd}?api_key={auth}"
         async with aiohttp.ClientSession() as session:
-            # request = await session.get(url, ssl=False)
-            # response = await request.json()
-        
-            game_info = []
-            all_data = []
-            data_recieved = False
-            if True:#status code =200
-                data_recieved = True
-                
-                # response = request.json() # OG
-                
-                with open("ingame.json","r",encoding="utf-8") as f:
-                    response = json.load(f)
-                
-                game_info.append(response["gameMode"])
-                game_info.append(response["gameQueueConfigId"])
-                tasks = []
-                for participant in response["participants"]:
-                    summoner_id = participant["summonerId"]
-                    puuid = participant["puuid"]
-                    tasks.append(InGame.getPlayerRank(summoner_id, auth,session))
-                    tasks.append(InGame.getSummonerLevel(puuid, auth,session))
+            try:
+                async with session.get(url) as request:
+                    if request.status == 200:
+                        response = await request.json()
+                        
+                        game_info = [
+                            response.get("gameMode"),
+                            response.get("gameQueueConfigId")
+                        ]
+                        
+                        tasks = []
+                        for participant in response["participants"]:
+                            summoner_id = participant["summonerId"]
+                            puuid = participant["puuid"]
+                            tasks.append(InGame.getPlayerRank(region,summoner_id, auth, session))
+                            tasks.append(InGame.getSummonerLevel(region,puuid, auth, session))
 
-                results = await asyncio.gather(*tasks)
-                
-                for i, participant in enumerate(response["participants"]):
-                    puid = participant["puuid"]
-                    teamid = participant["teamId"]
-                    championId = participant["championId"]
-                    profileIconId = participant["profileIconId"]
+                        results = await asyncio.gather(*tasks)
+                        
+                        all_data = []
+                        for i, participant in enumerate(response["participants"]):
+                            puid = participant["puuid"]
+                            teamid = participant["teamId"]
+                            championId = participant["championId"]
+                            profileIconId = participant["profileIconId"]
 
-                    tier, rank, winrate = results[i * 2]  # Indexing into the gathered results
-                    level = results[i * 2 + 1]
-                    riotID = participant["riotId"]
+                            tier, rank, winrate = results[i * 2]
+                            level = results[i * 2 + 1]
+                            riotID = participant.get("riotId")
 
-                    all_data.append([puid, teamid, championId, profileIconId, tier, rank, winrate, level, riotID])
-                        # for participant in response["participants"]:
-                        #     print(f"Praticipant: {participant}")
-                        #     puid = participant["puuid"]
-                        #     teamid = participant["teamId"]
-                        #     championId = participant["championId"]
-                        #     profileIconId = participant["profileIconId"]
-
-                        #     tier,rank,winrate = InGame.getPlayerRank(participant["summonerId"],auth)
+                            all_data.append([puid, teamid, championId, profileIconId, tier, rank, winrate, level, riotID])
                             
-                        #     level = InGame.getSummonerLevel(participant["puuid"],auth)
-                        #     riotID = participant["riotId"]
-                            
-                        #     all_data.append([puid,teamid,championId,profileIconId,tier,rank,winrate,level,riotID])
-                return all_data, True, game_info            
-                #     return all_data,data_recieved,game_info
-                # else:
+                        return all_data, True, game_info
                     
-                #     return (all_data,False,None)
+                    else:
+                        print(f"Failed to get current match data, status code: {request.status}")
+                        return [], False, None
             
-        ##async with aiohttp.ClientSession() as session:
-            # request = await session.get(url, ssl=False)
-            # response = await request.json()
+            except aiohttp.ClientError as e:
+                print(f"HTTP request failed: {e}")
+                return [], False, None
+            
+            
+            
+    
+           
+    # async def getCurrentMatchData(puuiddd,auth):
         
-            # game_info = []
-            # all_data = []
-            # data_recieved = False
-            # if request.status == 200:
-            #     data_recieved = True
+    #     url = f"https://eun1.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{puuiddd}?api_key=RGAPI-6e925dd7-2bdc-4a78-ba23-35b3a895a417"
+    #     async with aiohttp.ClientSession() as session:
+    #         request = await session.get(url, ssl=False)
+    #         response = await request.json()
+            
+    #         game_info = []
+    #         all_data = []
+    #         data_recieved = False
+    #         if True:#request.status == 200:
+    #             data_recieved = True
                 
-            #     # response = request.json() # OG
+    #             response = request.json() # OG
                 
-            #     with open("ingame.json","r",encoding="utf-8") as f:
-            #         response = json.load(f)
+    #             with open("ingame.json","r",encoding="utf-8") as f:
+    #                 response = json.load(f)
                 
-            #     game_info.append(response["gameMode"])
-            #     game_info.append(response["gameQueueConfigId"])
-                
-            #     for participant in response["participants"]:
-                    
-            #         puid = participant["puuid"]
-            #         teamid = participant["teamId"]
-            #         championId = participant["championId"]
-            #         profileIconId = participant["profileIconId"]
+    #             game_info.append(response["gameMode"])
+    #             game_info.append(response["gameQueueConfigId"])
+    #             tasks = []
+    #             for participant in response["participants"]:
+    #                 summoner_id = participant["summonerId"]
+    #                 puuid = participant["puuid"]
+    #                 tasks.append(InGame.getPlayerRank(summoner_id, auth,session))
+    #                 tasks.append(InGame.getSummonerLevel(puuid, auth,session))
 
-            #         tier,rank,winrate = InGame.getPlayerRank(participant["summonerId"],auth)
-                    
-            #         level = InGame.getSummonerLevel(participant["puuid"],auth)
-            #         riotID = participant["riotId"]
-            #         print(riotID)
-            #         all_data.append([puid,teamid,championId,profileIconId,tier,rank,winrate,level,riotID])
-                    
-            #     return all_data,data_recieved,game_info
-            # else:
+    #             results = await asyncio.gather(*tasks)
                 
-            #     return (all_data,False,None)
-    async def getSummonerLevel(puuiddd, auth, session):
-        url = f"https://eun1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuiddd}?api_key={auth}"
+    #             for i, participant in enumerate(response["participants"]):
+    #                 puid = participant["puuid"]
+    #                 teamid = participant["teamId"]
+    #                 championId = participant["championId"]
+    #                 profileIconId = participant["profileIconId"]
+
+    #                 tier, rank, winrate = results[i * 2]  # Indexing into the gathered results
+    #                 level = results[i * 2 + 1]
+    #                 riotID = participant["riotId"]
+
+    #                 all_data.append([puid, teamid, championId, profileIconId, tier, rank, winrate, level, riotID])
+                        
+    #             return all_data, True, game_info            
+    #             #     return all_data,data_recieved,game_info
+    #         else:
+    #             print("Failed to get current match data")
+    #             return (all_data,False,None)   
+    async def getSummonerLevel(region,puuiddd, auth, session):
+        url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuiddd}?api_key={auth}"
         
         async with session.get(url) as get_level:
             get_level = await get_level.json()
             
         level = get_level.get("summonerLevel", None)
         return level
-    # def getSummonerLevel(puuiddd,auth):
-        
-    #     url = f"https://eun1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuiddd}?api_key={auth}"
-    #     get_level = requests.get(url)
-    #     get_level = get_level.json()
-    #     level = get_level["summonerLevel"]
-    #     return level
-    async def getPlayerRank(summoner_id, auth, session):
-        url = f"https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/{summoner_id}?api_key={auth}"
+    
+    async def getPlayerRank(region,summoner_id, auth, session):
+        url = f"https://{region}.api.riotgames.com/lol/league/v4/entries/by-summoner/{summoner_id}?api_key={auth}"
         
         async with session.get(url) as rank_req:
             rank_data = await rank_req.json()
@@ -630,74 +630,7 @@ class InGame:
         rank_value = ranks.get(two_ranks[max_index], 0)
 
         return divisions[max_index], two_ranks[max_index], winrates[max_index]   
-    # def getPlayerRank(summoner_id, auth):
-    #     url = f"https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/{summoner_id}?api_key={auth}"
-    #     rank_req = requests.get(url)
-    #     rank_data = rank_req.json()
-        
-    #     if not isinstance(rank_data, list) or len(rank_data) == 0:
-    #         return None, None, None
-        
-    #     tiers = {
-    #         "IRON": 0,
-    #         "BRONZE": 1,
-    #         "SILVER": 2,
-    #         "GOLD": 3,
-    #         "PLATINUM": 4,
-    #         "EMERALD": 5,
-    #         "DIAMOND": 6,
-    #         "MASTER": 7,
-    #         "GRANDMASTER": 8,
-    #         "CHALLENGER": 9
-    #     }
-        
-    #     ranks = {
-    #         "IV": 0,
-    #         "III": 1,
-    #         "II": 2,
-    #         "I": 3
-    #     }
-        
-    #     winrates = []
-    #     divisions = []
-    #     two_ranks = []
-
-    #     for entry in rank_data:
-    #         try:
-    #             if entry["tier"] in tiers:
-    #                 divisions.append(entry["tier"])
-    #             if entry["rank"] in ranks:
-    #                 two_ranks.append(entry["rank"])
-                
-    #             wins = entry.get("wins", 0)
-    #             losses = entry.get("losses", 0)
-                
-    #             if wins + losses > 0:
-    #                 winrate = int(wins / (wins + losses) * 100)
-    #                 winrates.append(winrate)
-    #             else:
-    #                 winrates.append(0)
-                    
-    #         except KeyError:
-    #             continue
-        
-    #     if not divisions or not two_ranks or not winrates:
-    #         return None, None, None
-        
-    #     max_index = winrates.index(max(winrates))
-    #     tier_value = tiers.get(divisions[max_index], 0)
-    #     rank_value = ranks.get(two_ranks[max_index], 0)
-        
-    #     return divisions[max_index], two_ranks[max_index], winrates[max_index]
-                
     
-
-
-
-
-
-
-
 
 
 
